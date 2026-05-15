@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import { supabase } from "../lib/supabase";
 
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -14,9 +15,11 @@ L.Icon.Default.mergeOptions({
 });
 
 export default function PanelCliente() {
+  const router = useRouter();
 
   const [data, setData] = useState([]);
   const [filtro, setFiltro] = useState("Todos");
+  const [busqueda, setBusqueda] = useState("");
 
   useEffect(() => {
     cargar();
@@ -38,8 +41,17 @@ export default function PanelCliente() {
   };
 
   const filtrados = data.filter((r) => {
-    if (filtro === "Todos") return true;
-    return r.estado === filtro;
+    const texto = busqueda.toLowerCase();
+
+    const coincideBusqueda =
+      r.nombre?.toLowerCase().includes(texto) ||
+      r.apodo?.toLowerCase().includes(texto) ||
+      r.run?.toLowerCase().includes(texto);
+
+    const coincideEstado =
+      filtro === "Todos" || r.estado === filtro;
+
+    return coincideBusqueda && coincideEstado;
   });
 
   const estados = [
@@ -54,7 +66,6 @@ export default function PanelCliente() {
   return (
     <div style={{ display: "flex", height: "100vh" }}>
 
-      {/* MAPA */}
       <div style={{ flex: 2 }}>
         <MapContainer
           center={[-35.97, -71.68]}
@@ -70,13 +81,14 @@ export default function PanelCliente() {
                 position={[Number(r.lat), Number(r.lng)]}
               >
                 <Popup>
-
                   {r.foto && (
                     <img
                       src={r.foto}
                       alt="foto"
                       style={{
-                        width: "100%",
+                        width: "220px",
+                        height: "220px",
+                        objectFit: "cover",
                         borderRadius: 8,
                         marginBottom: 8
                       }}
@@ -85,29 +97,36 @@ export default function PanelCliente() {
 
                   <b>{r.nombre}</b>
                   <br />
+                  Apodo: {r.apodo}
+                  <br />
+                  RUN: {r.run}
+                  <br />
                   Estado: {r.estado}
                   <br />
                   Riesgo: {r.riesgo}
-
                 </Popup>
               </Marker>
             ) : null
           )}
-
         </MapContainer>
       </div>
 
-      {/* LISTA */}
-      <div style={{
-        flex: 1,
-        padding: 15,
-        overflowY: "auto",
-        borderLeft: "1px solid #ccc"
-      }}>
-
+      <div
+        style={{
+          flex: 1,
+          padding: 15,
+          overflowY: "auto",
+          borderLeft: "1px solid #ccc"
+        }}
+      >
         <h2>🧭 Panel Operativo</h2>
 
-        {/* FILTROS */}
+        <input
+          placeholder="Buscar por nombre, apodo o RUN"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+
         <div style={{ marginBottom: 10 }}>
           {estados.map((e) => (
             <button
@@ -130,24 +149,16 @@ export default function PanelCliente() {
           ))}
         </div>
 
-        {/* REGISTROS */}
         {filtrados.map((r) => (
-          <div
-            key={r.id}
-            style={{
-              border: "1px solid #ddd",
-              padding: 10,
-              marginBottom: 10,
-              borderRadius: 8
-            }}
-          >
-
+          <div key={r.id} className="card">
             {r.foto && (
               <img
                 src={r.foto}
                 alt="foto"
                 style={{
                   width: "100%",
+                  maxHeight: 180,
+                  objectFit: "cover",
                   borderRadius: 8,
                   marginBottom: 8
                 }}
@@ -155,12 +166,19 @@ export default function PanelCliente() {
             )}
 
             <b>{r.nombre}</b>
+            <p>Apodo: {r.apodo}</p>
+            <p>RUN: {r.run}</p>
             <p>Estado: {r.estado}</p>
             <p>Riesgo: {r.riesgo}</p>
 
+            <button
+              className="btn"
+              onClick={() => router.push(`/registro/${r.id}`)}
+            >
+              📚 Ver historial
+            </button>
           </div>
         ))}
-
       </div>
     </div>
   );
