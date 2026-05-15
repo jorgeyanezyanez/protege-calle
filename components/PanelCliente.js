@@ -23,11 +23,7 @@ export default function PanelCliente() {
 
   useEffect(() => {
     cargar();
-
-    const interval = setInterval(() => {
-      cargar();
-    }, 10000);
-
+    const interval = setInterval(cargar, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -48,8 +44,7 @@ export default function PanelCliente() {
       r.apodo?.toLowerCase().includes(texto) ||
       r.run?.toLowerCase().includes(texto);
 
-    const coincideEstado =
-      filtro === "Todos" || r.estado === filtro;
+    const coincideEstado = filtro === "Todos" || r.estado === filtro;
 
     return coincideBusqueda && coincideEstado;
   });
@@ -64,9 +59,15 @@ export default function PanelCliente() {
   ];
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
-
-      <div style={{ flex: 2 }}>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1.8fr 1fr",
+        height: "calc(100vh - 60px)",
+        background: "#eef3f8"
+      }}
+    >
+      <div style={{ height: "100%" }}>
         <MapContainer
           center={[-35.97, -71.68]}
           zoom={14}
@@ -76,34 +77,31 @@ export default function PanelCliente() {
 
           {filtrados.map((r) =>
             r.lat && r.lng ? (
-              <Marker
-                key={r.id}
-                position={[Number(r.lat), Number(r.lng)]}
-              >
+              <Marker key={r.id} position={[Number(r.lat), Number(r.lng)]}>
                 <Popup>
                   {r.foto && (
                     <img
                       src={r.foto}
                       alt="foto"
                       style={{
-                        width: "220px",
-                        height: "220px",
+                        width: "180px",
+                        height: "180px",
                         objectFit: "cover",
-                        borderRadius: 8,
+                        borderRadius: 12,
                         marginBottom: 8
                       }}
                     />
                   )}
 
-                  <b>{r.nombre}</b>
+                  <b>{r.nombre || "Sin nombre"}</b>
                   <br />
-                  Apodo: {r.apodo}
+                  Apodo: {r.apodo || "Sin dato"}
                   <br />
-                  RUN: {r.run}
+                  RUN: {r.run || "Sin dato"}
                   <br />
-                  Estado: {r.estado}
+                  Estado: {r.estado || "Sin dato"}
                   <br />
-                  Riesgo: {r.riesgo}
+                  Riesgo: {r.riesgo || "Sin dato"}
                 </Popup>
               </Marker>
             ) : null
@@ -111,42 +109,51 @@ export default function PanelCliente() {
         </MapContainer>
       </div>
 
-      <div
+      <aside
         style={{
-          flex: 1,
-          padding: 15,
+          padding: 16,
           overflowY: "auto",
-          borderLeft: "1px solid #ccc"
+          background: "#f8fafc",
+          borderLeft: "1px solid #dbe3ea"
         }}
       >
-        <h2>🧭 Panel Operativo</h2>
+        <div className="card">
+          <h2>🧭 Panel Operativo</h2>
+          <p>
+            Registros visibles: <b>{filtrados.length}</b>
+          </p>
 
-        <input
-          placeholder="Buscar por nombre, apodo o RUN"
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
+          <input
+            placeholder="Buscar nombre, apodo o RUN"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
 
-        <div style={{ marginBottom: 10 }}>
-          {estados.map((e) => (
-            <button
-              key={e}
-              onClick={() => setFiltro(e)}
-              style={{
-                display: "block",
-                marginBottom: 5,
-                padding: 8,
-                width: "100%",
-                background: filtro === e ? "#2563eb" : "#eee",
-                color: filtro === e ? "white" : "black",
-                border: "none",
-                borderRadius: 6,
-                cursor: "pointer"
-              }}
-            >
-              {e}
-            </button>
-          ))}
+          <div
+            style={{
+              display: "grid",
+              gap: 8,
+              marginTop: 10
+            }}
+          >
+            {estados.map((e) => (
+              <button
+                key={e}
+                onClick={() => setFiltro(e)}
+                style={{
+                  padding: 10,
+                  borderRadius: 12,
+                  border: "1px solid #dbe3ea",
+                  background: filtro === e ? "#1d4ed8" : "#ffffff",
+                  color: filtro === e ? "#ffffff" : "#0f172a",
+                  fontWeight: 700,
+                  cursor: "pointer"
+                }}
+              >
+                {e}
+              </button>
+            ))}
+          </div>
         </div>
 
         {filtrados.map((r) => (
@@ -157,29 +164,30 @@ export default function PanelCliente() {
                 alt="foto"
                 style={{
                   width: "100%",
-                  maxHeight: 180,
+                  height: 150,
                   objectFit: "cover",
-                  borderRadius: 8,
-                  marginBottom: 8
+                  borderRadius: 14,
+                  marginBottom: 10
                 }}
               />
             )}
 
-            <b>{r.nombre}</b>
-            <p>Apodo: {r.apodo}</p>
-            <p>RUN: {r.run}</p>
-            <p>Estado: {r.estado}</p>
-            <p>Riesgo: {r.riesgo}</p>
+            <h3>{r.nombre || "Sin nombre"}</h3>
+            <p>Apodo: {r.apodo || "Sin dato"}</p>
+            <p>RUN: {r.run || "Sin dato"}</p>
+            <p>Estado: {r.estado || "Sin dato"}</p>
+            <p>Riesgo: {r.riesgo || "Sin dato"}</p>
+            <p>Sector: {r.sector || "Sin dato"}</p>
 
             <button
               className="btn"
               onClick={() => router.push(`/registro/${r.id}`)}
             >
-              📚 Ver historial
+              📚 Ver ficha e historial
             </button>
           </div>
         ))}
-      </div>
+      </aside>
     </div>
   );
 }
