@@ -8,7 +8,6 @@ export default function Detalle() {
 
   const [form, setForm] = useState(null);
   const [intervenciones, setIntervenciones] = useState([]);
-
   const [nueva, setNueva] = useState({
     accion: "",
     derivacion: "",
@@ -146,14 +145,10 @@ export default function Detalle() {
     alert("Intervención guardada");
   };
 
-  const imprimirFicha = () => {
-    window.print();
-  };
-
   if (!form) return <p style={{ padding: 20 }}>Cargando...</p>;
 
   return (
-    <div style={{ padding: 20, maxWidth: 800 }}>
+    <div className="container">
 
       <style jsx global>{`
         @media print {
@@ -166,137 +161,174 @@ export default function Detalle() {
             background: white !important;
           }
 
-          .ficha-print {
-            border: none !important;
+          .card {
             box-shadow: none !important;
+            border: 1px solid #ccc !important;
           }
         }
       `}</style>
 
-      <div className="no-print">
-        <h2>📄 Ficha Operativa</h2>
+      <div className="card">
+        <div
+          style={{
+            display: "flex",
+            gap: 18,
+            alignItems: "center",
+            flexWrap: "wrap"
+          }}
+        >
+          {form.foto ? (
+            <img
+              src={form.foto}
+              alt="Foto"
+              style={{
+                width: 130,
+                height: 130,
+                objectFit: "cover",
+                borderRadius: 24,
+                border: "1px solid #ddd"
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 130,
+                height: 130,
+                borderRadius: 24,
+                background: "#e2e8f0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 45
+              }}
+            >
+              👤
+            </div>
+          )}
+
+          <div>
+            <h1>{form.nombre || "Sin nombre"}</h1>
+            <p>Apodo: {form.apodo || "Sin dato"}</p>
+            <p>RUN: {form.run || "Sin dato"}</p>
+            <p>
+              Estado: <b>{form.estado || "Sin dato"}</b> | Riesgo:{" "}
+              <b>{form.riesgo || "Sin dato"}</b>
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div
-        className="ficha-print"
-        style={{
-          border: "1px solid #ccc",
-          borderRadius: 10,
-          padding: 20,
-          background: "#fff"
-        }}
-      >
-        <h1>Ficha de Registro - Protege Calle</h1>
+      <div className="no-print card">
+        <h2>Acciones rápidas</h2>
 
-        {form.foto && (
-          <img
-            src={form.foto}
-            alt="Foto"
-            style={{
-              width: 160,
-              height: 160,
-              objectFit: "cover",
-              borderRadius: 8,
-              border: "1px solid #ccc"
-            }}
-          />
-        )}
+        <div className="grid-btn">
+          <button className="btn" onClick={guardar}>
+            💾 Guardar ficha
+          </button>
 
+          <button className="btn" onClick={() => window.print()}>
+            🖨️ Imprimir / PDF
+          </button>
+
+          <button className="btn" onClick={actualizarUbicacion}>
+            📍 Actualizar ubicación
+          </button>
+
+          <button className="btn" onClick={abrirGoogleMaps}>
+            🧭 Google Maps
+          </button>
+        </div>
+      </div>
+
+      <div className="card">
         <h2>Identificación</h2>
-        <p><b>Nombre:</b> {form.nombre}</p>
-        <p><b>Apodo:</b> {form.apodo}</p>
-        <p><b>RUN:</b> {form.run}</p>
-        <p><b>Edad:</b> {form.edad}</p>
-        <p><b>Nacionalidad:</b> {form.nacionalidad}</p>
-        <p><b>Sexo:</b> {form.sexo}</p>
 
+        <input name="nombre" value={form.nombre || ""} onChange={handle} placeholder="Nombre" />
+        <input name="apodo" value={form.apodo || ""} onChange={handle} placeholder="Apodo" />
+        <input name="run" value={form.run || ""} onChange={handle} placeholder="RUN" />
+        <input name="edad" value={form.edad || ""} onChange={handle} placeholder="Edad" />
+        <input name="nacionalidad" value={form.nacionalidad || ""} onChange={handle} placeholder="Nacionalidad" />
+
+        <select name="sexo" value={form.sexo || ""} onChange={handle}>
+          <option value="">Sexo</option>
+          <option>Hombre</option>
+          <option>Mujer</option>
+          <option>No binario</option>
+          <option>No responde</option>
+        </select>
+      </div>
+
+      <div className="card">
         <h2>Ubicación</h2>
-        <p><b>Sector:</b> {form.sector}</p>
-        <p><b>Referencia:</b> {form.referencia}</p>
-        <p><b>Latitud:</b> {form.lat}</p>
-        <p><b>Longitud:</b> {form.lng}</p>
+
+        <input name="sector" value={form.sector || ""} onChange={handle} placeholder="Sector" />
+        <input name="referencia" value={form.referencia || ""} onChange={handle} placeholder="Referencia" />
+
+        <p>📍 Latitud: {form.lat}</p>
+        <p>📍 Longitud: {form.lng}</p>
+
         <p>
-          <b>Última actualización:</b>{" "}
+          🕒 Última actualización:{" "}
           {form.ultima_actualizacion
             ? new Date(form.ultima_actualizacion).toLocaleString("es-CL")
             : "Sin información"}
         </p>
-
-        <h2>Situación</h2>
-        <p><b>Estado:</b> {form.estado}</p>
-        <p><b>Riesgo:</b> {form.riesgo}</p>
-        <p><b>Consumo:</b> {form.consumo}</p>
-        <p><b>Salud mental:</b> {form.saludmental}</p>
-        <p><b>Acepta albergue:</b> {form.aceptaalbergue}</p>
-
-        <h2>Observaciones generales</h2>
-        <p>{form.observaciones}</p>
-
-        <h2>Historial de intervenciones</h2>
-
-        {intervenciones.length === 0 && (
-          <p>No hay intervenciones registradas.</p>
-        )}
-
-        {intervenciones.map((i) => (
-          <div
-            key={i.id}
-            style={{
-              borderTop: "1px solid #ddd",
-              paddingTop: 10,
-              marginTop: 10
-            }}
-          >
-            <p><b>Fecha:</b> {new Date(i.fecha).toLocaleString("es-CL")}</p>
-            <p><b>Funcionario:</b> {i.funcionario}</p>
-            <p><b>Acción:</b> {i.accion}</p>
-            <p><b>Derivación:</b> {i.derivacion}</p>
-            <p><b>Observaciones:</b> {i.observaciones}</p>
-          </div>
-        ))}
       </div>
 
-      <div className="no-print" style={{ marginTop: 20 }}>
-        <button onClick={imprimirFicha} className="btn">
-          🖨️ Imprimir ficha / Guardar PDF
-        </button>
+      <div className="card">
+        <h2>Situación actual</h2>
 
-        <button onClick={guardar} className="btn" style={{ marginLeft: 10 }}>
-          💾 Guardar ficha
-        </button>
+        <select name="estado" value={form.estado || ""} onChange={handle}>
+          <option value="">Estado</option>
+          <option>En calle</option>
+          <option>Atendido</option>
+          <option>Trasladado</option>
+          <option>Derivado a salud</option>
+          <option>Sin ubicación</option>
+        </select>
 
-        <button
-          onClick={actualizarUbicacion}
-          style={{
-            marginLeft: 10,
-            padding: 10,
-            background: "#22c55e",
-            color: "white",
-            border: "none",
-            borderRadius: 6
-          }}
-        >
-          📍 Actualizar ubicación
-        </button>
+        <select name="riesgo" value={form.riesgo || ""} onChange={handle}>
+          <option value="">Riesgo</option>
+          <option>Bajo</option>
+          <option>Medio</option>
+          <option>Alto</option>
+          <option>Crítico</option>
+        </select>
 
-        <button
-          onClick={abrirGoogleMaps}
-          style={{
-            marginLeft: 10,
-            padding: 10,
-            background: "#f59e0b",
-            color: "white",
-            border: "none",
-            borderRadius: 6
-          }}
-        >
-          🧭 Google Maps
-        </button>
+        <select name="consumo" value={form.consumo || ""} onChange={handle}>
+          <option value="">Consumo</option>
+          <option>No</option>
+          <option>Alcohol</option>
+          <option>Drogas</option>
+          <option>Ambos</option>
+        </select>
+
+        <select name="saludmental" value={form.saludmental || ""} onChange={handle}>
+          <option value="">Salud mental</option>
+          <option>Sin diagnóstico</option>
+          <option>Sospecha</option>
+          <option>Diagnóstico confirmado</option>
+          <option>Tratamiento</option>
+        </select>
+
+        <select name="aceptaalbergue" value={form.aceptaalbergue || ""} onChange={handle}>
+          <option value="">Acepta albergue</option>
+          <option>Sí</option>
+          <option>No</option>
+          <option>Rechaza</option>
+          <option>Pendiente</option>
+        </select>
+
+        <textarea
+          name="observaciones"
+          value={form.observaciones || ""}
+          onChange={handle}
+          placeholder="Observaciones generales"
+          rows={4}
+        />
       </div>
 
-      <hr className="no-print" style={{ margin: "25px 0" }} />
-
-      <div className="no-print">
+      <div className="no-print card">
         <h2>📝 Nueva intervención</h2>
 
         <select name="accion" value={nueva.accion} onChange={handleNueva}>
@@ -329,6 +361,31 @@ export default function Detalle() {
         <button onClick={guardarIntervencion} className="btn">
           ➕ Guardar intervención
         </button>
+      </div>
+
+      <div className="card">
+        <h2>📚 Historial de intervenciones</h2>
+
+        {intervenciones.length === 0 && (
+          <p>No hay intervenciones registradas.</p>
+        )}
+
+        {intervenciones.map((i) => (
+          <div
+            key={i.id}
+            style={{
+              borderTop: "1px solid #ddd",
+              paddingTop: 12,
+              marginTop: 12
+            }}
+          >
+            <h3>{i.accion}</h3>
+            <p>Fecha: {new Date(i.fecha).toLocaleString("es-CL")}</p>
+            <p>Funcionario: {i.funcionario}</p>
+            <p>Derivación: {i.derivacion}</p>
+            <p>Observaciones: {i.observaciones}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
