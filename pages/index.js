@@ -3,25 +3,28 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="container">
+
       <div className="card" style={{ textAlign: "center" }}>
         <img
           src="/logo.png"
           alt="Protege Calle"
           style={{
-            width: 120,
-            height: 120,
+            width: 95,
+            height: 95,
             objectFit: "cover",
-            borderRadius: 24,
-            marginBottom: 15
+            borderRadius: 22,
+            marginBottom: 10
           }}
         />
 
         <h1>Protege Calle</h1>
 
         <p>
-          Sistema territorial para registro, seguimiento y apoyo a personas en situación de calle.
+          Registro y seguimiento territorial de personas en situación de calle.
         </p>
       </div>
+
+      <h2>Acciones principales</h2>
 
       <div className="grid-btn">
         <Link href="/nuevo">
@@ -29,15 +32,19 @@ export default function Home() {
         </Link>
 
         <Link href="/registros">
-          <button className="btn">📋 Registros</button>
-        </Link>
-
-        <Link href="/mapa">
-          <button className="btn">🗺️ Mapa territorial</button>
+          <button className="btn">🔎 Buscar persona</button>
         </Link>
 
         <Link href="/panel">
           <button className="btn">🧭 Panel operativo</button>
+        </Link>
+      </div>
+
+      <h2 style={{ marginTop: 25 }}>Herramientas</h2>
+
+      <div className="grid-btn">
+        <Link href="/mapa">
+          <button className="btn">🗺️ Mapa</button>
         </Link>
 
         <Link href="/estadisticas">
@@ -45,9 +52,10 @@ export default function Home() {
         </Link>
 
         <Link href="/pendientes">
-          <button className="btn">📡 Pendientes offline</button>
+          <button className="btn">📡 Pendientes</button>
         </Link>
       </div>
+
     </div>
   );
 }
