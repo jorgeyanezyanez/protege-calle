@@ -3,7 +3,9 @@ import { useRouter } from "next/router";
 import { supabase } from "../../lib/supabase";
 
 export default function Detalle() {
+
   const router = useRouter();
+
   const { id } = router.query;
 
   const [form, setForm] = useState(null);
@@ -17,6 +19,7 @@ export default function Detalle() {
   });
 
   useEffect(() => {
+
     if (!router.isReady || !id) return;
 
     cargar();
@@ -178,11 +181,19 @@ export default function Detalle() {
     <div className="container">
 
       <style jsx global>{`
+        .only-print {
+          display: none;
+        }
+
         @media print {
 
           nav,
           .no-print {
             display: none !important;
+          }
+
+          .only-print {
+            display: block !important;
           }
 
           body {
@@ -317,6 +328,36 @@ export default function Detalle() {
           </button>
 
         </div>
+
+      </div>
+
+      {/* SOLO IMPRESIÓN */}
+      <div className="card only-print">
+
+        <h2>Identificación</h2>
+
+        <p><b>Nombre:</b> {form.nombre}</p>
+        <p><b>Apodo:</b> {form.apodo}</p>
+        <p><b>RUN:</b> {form.run}</p>
+        <p><b>Edad:</b> {form.edad}</p>
+        <p><b>Nacionalidad:</b> {form.nacionalidad}</p>
+        <p><b>Sexo:</b> {form.sexo}</p>
+
+        <h2>Ubicación</h2>
+
+        <p><b>Sector:</b> {form.sector}</p>
+        <p><b>Referencia:</b> {form.referencia}</p>
+        <p><b>Latitud:</b> {form.lat}</p>
+        <p><b>Longitud:</b> {form.lng}</p>
+
+        <p>
+          <b>Última actualización:</b>
+          {" "}
+          {form.ultima_actualizacion
+            ? new Date(form.ultima_actualizacion)
+                .toLocaleString("es-CL")
+            : "Sin información"}
+        </p>
 
       </div>
 
