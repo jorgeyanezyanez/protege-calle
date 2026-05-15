@@ -32,7 +32,6 @@ export default function App({ Component, pageProps }) {
       data: { session }
     } = await supabase.auth.getSession();
 
-    // 🔒 NO LOGEADO
     if (!session && router.pathname !== "/login") {
 
       setLoading(false);
@@ -42,7 +41,6 @@ export default function App({ Component, pageProps }) {
       return;
     }
 
-    // 🔓 YA LOGEADO
     if (session && router.pathname === "/login") {
 
       setLoading(false);
@@ -62,7 +60,6 @@ export default function App({ Component, pageProps }) {
     router.push("/login");
   };
 
-  // LOGIN NO NECESITA MENÚ
   if (router.pathname === "/login") {
     return <Component {...pageProps} />;
   }
@@ -80,17 +77,28 @@ export default function App({ Component, pageProps }) {
           padding: 15,
           background: "#111",
           color: "white",
-          alignItems: "center"
+          alignItems: "center",
+          flexWrap: "wrap"
         }}
       >
 
         <Link href="/">Inicio</Link>
+
+        <Link href="/nuevo">Nuevo</Link>
 
         <Link href="/registros">Registros</Link>
 
         <Link href="/mapa">Mapa</Link>
 
         <Link href="/panel">Panel</Link>
+
+        <Link href="/pendientes">
+          Pendientes
+        </Link>
+
+        <Link href="/estadisticas">
+          Estadísticas
+        </Link>
 
         <button
           onClick={cerrarSesion}
