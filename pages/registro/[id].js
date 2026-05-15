@@ -65,6 +65,65 @@ export default function Detalle() {
     alert("Ficha actualizada");
   };
 
+  const actualizarUbicacion = () => {
+    if (!navigator.geolocation) {
+      alert("GPS no disponible en este dispositivo");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const nuevaLat = pos.coords.latitude;
+        const nuevaLng = pos.coords.longitude;
+
+        const { error } = await supabase
+          .from("registros")
+          .update({
+            lat: nuevaLat,
+            lng: nuevaLng,
+            ultima_actualizacion: new Date().toISOString()
+          })
+          .eq("id", id);
+
+        if (error) {
+          console.log(error);
+          alert("Error al actualizar ubicación");
+          return;
+        }
+
+        setForm({
+          ...form,
+          lat: nuevaLat,
+          lng: nuevaLng,
+          ultima_actualizacion: new Date().toISOString()
+        });
+
+        alert("Ubicación actualizada");
+      },
+      (error) => {
+        console.log(error);
+        alert("No se pudo obtener la ubicación");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  };
+
+  const abrirGoogleMaps = () => {
+    if (!form.lat || !form.lng) {
+      alert("Este registro no tiene ubicación");
+      return;
+    }
+
+    window.open(
+      `https://www.google.com/maps/search/?api=1&query=${form.lat},${form.lng}`,
+      "_blank"
+    );
+  };
+
   const guardarIntervencion = async () => {
     const { data: userData } = await supabase.auth.getUser();
 
@@ -152,16 +211,51 @@ export default function Detalle() {
         rows={4}
       />
 
-      <p>📍 GPS: {form.lat}, {form.lng}</p>
+      <p>📍 Última ubicación: {form.lat}, {form.lng}</p>
+
+      {form.ultima_actualizacion && (
+        <p>
+          🕒 Actualizada:{" "}
+          {new Date(form.ultima_actualizacion).toLocaleString("es-CL")}
+        </p>
+      )}
 
       <button onClick={guardar} className="btn">
         💾 Guardar ficha
       </button>
 
       <button
-        onClick={verEnMapa}
+        onClick={actualizarUbicacion}
         style={{
           marginLeft: 10,
+          padding: 10,
+          background: "#22c55e",
+          color: "white",
+          border: "none",
+          borderRadius: 6
+        }}
+      >
+        📍 Actualizar ubicación
+      </button>
+
+      <button
+        onClick={abrirGoogleMaps}
+        style={{
+          marginLeft: 10,
+          padding: 10,
+          background: "#f59e0b",
+          color: "white",
+          border: "none",
+          borderRadius: 6
+        }}
+      >
+        🧭 Abrir Google Maps
+      </button>
+
+      <button
+        onClick={verEnMapa}
+        style={{
+          marginTop: 10,
           padding: 10,
           background: "#0ea5e9",
           color: "white",
@@ -232,8 +326,7 @@ export default function Detalle() {
         >
           <b>{i.accion}</b>
           <p>
-            Fecha:{" "}
-            {new Date(i.fecha).toLocaleString("es-CL")}
+            Fecha: {new Date(i.fecha).toLocaleString("es-CL")}
           </p>
           <p>Funcionario: {i.funcionario}</p>
           <p>Derivación: {i.derivacion}</p>
