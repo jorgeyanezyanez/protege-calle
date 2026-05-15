@@ -32,16 +32,20 @@ export default function App({ Component, pageProps }) {
       data: { session }
     } = await supabase.auth.getSession();
 
-    // 🔒 SI NO HAY LOGIN
+    // 🔒 NO LOGEADO
     if (!session && router.pathname !== "/login") {
+
+      setLoading(false);
 
       router.push("/login");
 
       return;
     }
 
-    // 🔓 SI YA ESTÁ LOGEADO
+    // 🔓 YA LOGEADO
     if (session && router.pathname === "/login") {
+
+      setLoading(false);
 
       router.push("/");
 
@@ -58,13 +62,17 @@ export default function App({ Component, pageProps }) {
     router.push("/login");
   };
 
+  // LOGIN NO NECESITA MENÚ
+  if (router.pathname === "/login") {
+    return <Component {...pageProps} />;
+  }
+
   if (loading) {
     return <p style={{ padding: 20 }}>Cargando...</p>;
   }
 
   return (
     <>
-
       <nav
         style={{
           display: "flex",
@@ -102,7 +110,6 @@ export default function App({ Component, pageProps }) {
       </nav>
 
       <Component {...pageProps} />
-
     </>
   );
 }
