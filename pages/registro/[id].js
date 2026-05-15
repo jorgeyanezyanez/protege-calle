@@ -54,9 +54,17 @@ export default function Detalle() {
       .from("registros")
       .update({
         nombre: form.nombre,
+        apodo: form.apodo,
         run: form.run,
+        edad: form.edad,
+        nacionalidad: form.nacionalidad,
+        sexo: form.sexo,
         sector: form.sector,
+        referencia: form.referencia,
         riesgo: form.riesgo,
+        consumo: form.consumo,
+        saludmental: form.saludmental,
+        aceptaalbergue: form.aceptaalbergue,
         estado: form.estado,
         observaciones: form.observaciones
       })
@@ -67,57 +75,40 @@ export default function Detalle() {
 
   const actualizarUbicacion = () => {
     if (!navigator.geolocation) {
-      alert("GPS no disponible en este dispositivo");
+      alert("GPS no disponible");
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const nuevaLat = pos.coords.latitude;
-        const nuevaLng = pos.coords.longitude;
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const nuevaLat = pos.coords.latitude;
+      const nuevaLng = pos.coords.longitude;
 
-        const { error } = await supabase
-          .from("registros")
-          .update({
-            lat: nuevaLat,
-            lng: nuevaLng,
-            ultima_actualizacion: new Date().toISOString()
-          })
-          .eq("id", id);
-
-        if (error) {
-          console.log(error);
-          alert("Error al actualizar ubicación");
-          return;
-        }
-
-        setForm({
-          ...form,
+      const { error } = await supabase
+        .from("registros")
+        .update({
           lat: nuevaLat,
           lng: nuevaLng,
           ultima_actualizacion: new Date().toISOString()
-        });
+        })
+        .eq("id", id);
 
-        alert("Ubicación actualizada");
-      },
-      (error) => {
-        console.log(error);
-        alert("No se pudo obtener la ubicación");
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
+      if (error) {
+        alert("Error al actualizar ubicación");
+        return;
       }
-    );
+
+      setForm({
+        ...form,
+        lat: nuevaLat,
+        lng: nuevaLng,
+        ultima_actualizacion: new Date().toISOString()
+      });
+
+      alert("Ubicación actualizada");
+    });
   };
 
   const abrirGoogleMaps = () => {
-    if (!form.lat || !form.lng) {
-      alert("Este registro no tiene ubicación");
-      return;
-    }
-
     window.open(
       `https://www.google.com/maps/search/?api=1&query=${form.lat},${form.lng}`,
       "_blank"
@@ -141,7 +132,6 @@ export default function Detalle() {
     ]);
 
     if (error) {
-      console.log(error);
       alert("Error al guardar intervención");
       return;
     }
@@ -156,184 +146,190 @@ export default function Detalle() {
     alert("Intervención guardada");
   };
 
-  const verEnMapa = () => {
-    router.push(`/mapa?lat=${form.lat}&lng=${form.lng}`);
+  const imprimirFicha = () => {
+    window.print();
   };
 
   if (!form) return <p style={{ padding: 20 }}>Cargando...</p>;
 
   return (
-    <div style={{ padding: 20, maxWidth: 650 }}>
+    <div style={{ padding: 20, maxWidth: 800 }}>
 
-      <h2>📄 Ficha Operativa</h2>
+      <style jsx global>{`
+        @media print {
+          nav,
+          .no-print {
+            display: none !important;
+          }
 
-      {form.foto && (
-        <img
-          src={form.foto}
-          alt="Foto"
-          style={{
-            width: "180px",
-            height: "180px",
-            objectFit: "cover",
-            borderRadius: 10,
-            marginBottom: 15,
-            border: "1px solid #ccc"
-          }}
-        />
-      )}
+          body {
+            background: white !important;
+          }
 
-      <input name="nombre" value={form.nombre || ""} onChange={handle} />
-      <input name="run" value={form.run || ""} onChange={handle} />
-      <input name="sector" value={form.sector || ""} onChange={handle} />
+          .ficha-print {
+            border: none !important;
+            box-shadow: none !important;
+          }
+        }
+      `}</style>
 
-      <select name="estado" value={form.estado || ""} onChange={handle}>
-        <option value="">Estado</option>
-        <option>En calle</option>
-        <option>Atendido</option>
-        <option>Trasladado</option>
-        <option>Derivado a salud</option>
-        <option>Sin ubicación</option>
-      </select>
+      <div className="no-print">
+        <h2>📄 Ficha Operativa</h2>
+      </div>
 
-      <select name="riesgo" value={form.riesgo || ""} onChange={handle}>
-        <option value="">Riesgo</option>
-        <option>Bajo</option>
-        <option>Medio</option>
-        <option>Alto</option>
-        <option>Crítico</option>
-      </select>
+      <div
+        className="ficha-print"
+        style={{
+          border: "1px solid #ccc",
+          borderRadius: 10,
+          padding: 20,
+          background: "#fff"
+        }}
+      >
+        <h1>Ficha de Registro - Protege Calle</h1>
 
-      <textarea
-        name="observaciones"
-        value={form.observaciones || ""}
-        onChange={handle}
-        placeholder="Observaciones generales"
-        rows={4}
-      />
+        {form.foto && (
+          <img
+            src={form.foto}
+            alt="Foto"
+            style={{
+              width: 160,
+              height: 160,
+              objectFit: "cover",
+              borderRadius: 8,
+              border: "1px solid #ccc"
+            }}
+          />
+        )}
 
-      <p>📍 Última ubicación: {form.lat}, {form.lng}</p>
+        <h2>Identificación</h2>
+        <p><b>Nombre:</b> {form.nombre}</p>
+        <p><b>Apodo:</b> {form.apodo}</p>
+        <p><b>RUN:</b> {form.run}</p>
+        <p><b>Edad:</b> {form.edad}</p>
+        <p><b>Nacionalidad:</b> {form.nacionalidad}</p>
+        <p><b>Sexo:</b> {form.sexo}</p>
 
-      {form.ultima_actualizacion && (
+        <h2>Ubicación</h2>
+        <p><b>Sector:</b> {form.sector}</p>
+        <p><b>Referencia:</b> {form.referencia}</p>
+        <p><b>Latitud:</b> {form.lat}</p>
+        <p><b>Longitud:</b> {form.lng}</p>
         <p>
-          🕒 Actualizada:{" "}
-          {new Date(form.ultima_actualizacion).toLocaleString("es-CL")}
+          <b>Última actualización:</b>{" "}
+          {form.ultima_actualizacion
+            ? new Date(form.ultima_actualizacion).toLocaleString("es-CL")
+            : "Sin información"}
         </p>
-      )}
 
-      <button onClick={guardar} className="btn">
-        💾 Guardar ficha
-      </button>
+        <h2>Situación</h2>
+        <p><b>Estado:</b> {form.estado}</p>
+        <p><b>Riesgo:</b> {form.riesgo}</p>
+        <p><b>Consumo:</b> {form.consumo}</p>
+        <p><b>Salud mental:</b> {form.saludmental}</p>
+        <p><b>Acepta albergue:</b> {form.aceptaalbergue}</p>
 
-      <button
-        onClick={actualizarUbicacion}
-        style={{
-          marginLeft: 10,
-          padding: 10,
-          background: "#22c55e",
-          color: "white",
-          border: "none",
-          borderRadius: 6
-        }}
-      >
-        📍 Actualizar ubicación
-      </button>
+        <h2>Observaciones generales</h2>
+        <p>{form.observaciones}</p>
 
-      <button
-        onClick={abrirGoogleMaps}
-        style={{
-          marginLeft: 10,
-          padding: 10,
-          background: "#f59e0b",
-          color: "white",
-          border: "none",
-          borderRadius: 6
-        }}
-      >
-        🧭 Abrir Google Maps
-      </button>
+        <h2>Historial de intervenciones</h2>
 
-      <button
-        onClick={verEnMapa}
-        style={{
-          marginTop: 10,
-          padding: 10,
-          background: "#0ea5e9",
-          color: "white",
-          border: "none",
-          borderRadius: 6
-        }}
-      >
-        🗺️ Ver en mapa
-      </button>
+        {intervenciones.length === 0 && (
+          <p>No hay intervenciones registradas.</p>
+        )}
 
-      <hr style={{ margin: "25px 0" }} />
+        {intervenciones.map((i) => (
+          <div
+            key={i.id}
+            style={{
+              borderTop: "1px solid #ddd",
+              paddingTop: 10,
+              marginTop: 10
+            }}
+          >
+            <p><b>Fecha:</b> {new Date(i.fecha).toLocaleString("es-CL")}</p>
+            <p><b>Funcionario:</b> {i.funcionario}</p>
+            <p><b>Acción:</b> {i.accion}</p>
+            <p><b>Derivación:</b> {i.derivacion}</p>
+            <p><b>Observaciones:</b> {i.observaciones}</p>
+          </div>
+        ))}
+      </div>
 
-      <h2>📝 Nueva intervención</h2>
+      <div className="no-print" style={{ marginTop: 20 }}>
+        <button onClick={imprimirFicha} className="btn">
+          🖨️ Imprimir ficha / Guardar PDF
+        </button>
 
-      <select
-        name="accion"
-        value={nueva.accion}
-        onChange={handleNueva}
-      >
-        <option value="">Acción realizada</option>
-        <option>Contacto en terreno</option>
-        <option>Entrega de orientación</option>
-        <option>Control preventivo</option>
-        <option>Coordinación municipal</option>
-        <option>Derivación a salud</option>
-        <option>Derivación a albergue</option>
-        <option>Rechaza ayuda</option>
-        <option>No ubicado</option>
-      </select>
+        <button onClick={guardar} className="btn" style={{ marginLeft: 10 }}>
+          💾 Guardar ficha
+        </button>
 
-      <input
-        name="derivacion"
-        placeholder="Derivación"
-        value={nueva.derivacion}
-        onChange={handleNueva}
-      />
-
-      <textarea
-        name="observaciones"
-        placeholder="Observaciones de la intervención"
-        value={nueva.observaciones}
-        onChange={handleNueva}
-        rows={4}
-      />
-
-      <button onClick={guardarIntervencion} className="btn">
-        ➕ Guardar intervención
-      </button>
-
-      <hr style={{ margin: "25px 0" }} />
-
-      <h2>📚 Historial de intervenciones</h2>
-
-      {intervenciones.length === 0 && (
-        <p>No hay intervenciones registradas.</p>
-      )}
-
-      {intervenciones.map((i) => (
-        <div
-          key={i.id}
+        <button
+          onClick={actualizarUbicacion}
           style={{
-            border: "1px solid #ddd",
-            padding: 12,
-            borderRadius: 8,
-            marginBottom: 10,
-            background: "#fff"
+            marginLeft: 10,
+            padding: 10,
+            background: "#22c55e",
+            color: "white",
+            border: "none",
+            borderRadius: 6
           }}
         >
-          <b>{i.accion}</b>
-          <p>
-            Fecha: {new Date(i.fecha).toLocaleString("es-CL")}
-          </p>
-          <p>Funcionario: {i.funcionario}</p>
-          <p>Derivación: {i.derivacion}</p>
-          <p>Observaciones: {i.observaciones}</p>
-        </div>
-      ))}
+          📍 Actualizar ubicación
+        </button>
 
+        <button
+          onClick={abrirGoogleMaps}
+          style={{
+            marginLeft: 10,
+            padding: 10,
+            background: "#f59e0b",
+            color: "white",
+            border: "none",
+            borderRadius: 6
+          }}
+        >
+          🧭 Google Maps
+        </button>
+      </div>
+
+      <hr className="no-print" style={{ margin: "25px 0" }} />
+
+      <div className="no-print">
+        <h2>📝 Nueva intervención</h2>
+
+        <select name="accion" value={nueva.accion} onChange={handleNueva}>
+          <option value="">Acción realizada</option>
+          <option>Contacto en terreno</option>
+          <option>Entrega de orientación</option>
+          <option>Control preventivo</option>
+          <option>Coordinación municipal</option>
+          <option>Derivación a salud</option>
+          <option>Derivación a albergue</option>
+          <option>Rechaza ayuda</option>
+          <option>No ubicado</option>
+        </select>
+
+        <input
+          name="derivacion"
+          placeholder="Derivación"
+          value={nueva.derivacion}
+          onChange={handleNueva}
+        />
+
+        <textarea
+          name="observaciones"
+          placeholder="Observaciones de la intervención"
+          value={nueva.observaciones}
+          onChange={handleNueva}
+          rows={4}
+        />
+
+        <button onClick={guardarIntervencion} className="btn">
+          ➕ Guardar intervención
+        </button>
+      </div>
     </div>
   );
 }
