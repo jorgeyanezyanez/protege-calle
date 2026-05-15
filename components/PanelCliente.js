@@ -23,17 +23,48 @@ export default function PanelCliente() {
 
   useEffect(() => {
     cargar();
-    const interval = setInterval(cargar, 10000);
+
+    const interval = setInterval(() => {
+      cargar();
+    }, 10000);
+
     return () => clearInterval(interval);
   }, []);
 
   const cargar = async () => {
-    const { data } = await supabase
+
+    const { data: registros } = await supabase
       .from("registros")
       .select("*")
       .order("id", { ascending: false });
 
-    setData(data || []);
+    if (!registros) {
+      setData([]);
+      return;
+    }
+
+    const ids = registros.map((r) => r.id);
+
+    const { data: intervenciones } = await supabase
+      .from("intervenciones")
+      .select("*")
+      .in("registro_id", ids)
+      .order("fecha", { ascending: false });
+
+    const registrosConHistorial = registros.map((r) => {
+
+      const ultima = intervenciones?.find(
+        (i) => i.registro_id === r.id
+      );
+
+      return {
+        ...r,
+        ultima_intervencion: ultima || null
+      };
+
+    });
+
+    setData(registrosConHistorial);
   };
 
   const diasSinActualizar = (fecha) => {
@@ -49,8 +80,18 @@ export default function PanelCliente() {
   const prioridad = (r) => {
     if (r.riesgo === "Crítico") return 1;
     if (r.riesgo === "Alto") return 2;
-    if (diasSinActualizar(r.ultima_actualizacion) >= 7) return 3;
+
+    if (r.ultima_intervencion?.fecha) {
+
+      const dias = diasSinActualizar(
+        r.ultima_intervencion.fecha
+      );
+
+      if (dias >= 7) return 3;
+    }
+
     if (r.riesgo === "Medio") return 4;
+
     return 5;
   };
 
@@ -59,11 +100,13 @@ export default function PanelCliente() {
     if (riesgo === "Alto") return "#f97316";
     if (riesgo === "Medio") return "#f59e0b";
     if (riesgo === "Bajo") return "#22c55e";
+
     return "#64748b";
   };
 
   const filtrados = data
     .filter((r) => {
+
       const texto = busqueda.toLowerCase();
 
       const coincideBusqueda =
@@ -73,9 +116,14 @@ export default function PanelCliente() {
         r.sector?.toLowerCase().includes(texto);
 
       const coincideEstado =
-        filtro === "Todos" || r.estado === filtro;
+        filtro === "Todos" ||
+        r.estado === filtro;
 
-      return coincideBusqueda && coincideEstado;
+      return (
+        coincideBusqueda &&
+        coincideEstado
+      );
+
     })
     .sort((a, b) => prioridad(a) - prioridad(b));
 
@@ -89,13 +137,16 @@ export default function PanelCliente() {
   ];
 
   const abrirGoogleMaps = (lat, lng) => {
+
     window.open(
       `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
       "_blank"
     );
+
   };
 
   return (
+
     <div
       style={{
         display: "grid",
@@ -103,23 +154,41 @@ export default function PanelCliente() {
         height: "calc(100vh - 60px)"
       }}
     >
+
+      {/* MAPA */}
       <div>
+
         <MapContainer
           center={[-35.97, -71.68]}
           zoom={14}
-          style={{ height: "100%", width: "100%" }}
+          style={{
+            height: "100%",
+            width: "100%"
+          }}
         >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
 
           {filtrados.map((r) =>
+
             r.lat && r.lng ? (
+
               <Marker
                 key={r.id}
-                position={[Number(r.lat), Number(r.lng)]}
+                position={[
+                  Number(r.lat),
+                  Number(r.lng)
+                ]}
               >
+
                 <Popup>
+
                   <div style={{ width: 220 }}>
+
                     {r.foto && (
+
                       <img
                         src={r.foto}
                         alt="foto"
@@ -131,29 +200,61 @@ export default function PanelCliente() {
                           marginBottom: 10
                         }}
                       />
+
                     )}
 
-                    <h3>{r.nombre || "Sin nombre"}</h3>
-                    <p><b>Apodo:</b> {r.apodo || "Sin dato"}</p>
-                    <p><b>RUN:</b> {r.run || "Sin dato"}</p>
-                    <p><b>Estado:</b> {r.estado || "Sin dato"}</p>
+                    <h3>
+                      {r.nombre || "Sin nombre"}
+                    </h3>
+
                     <p>
-                      <b>Riesgo:</b>{" "}
-                      <span style={{ color: colorRiesgo(r.riesgo), fontWeight: "bold" }}>
+                      <b>Apodo:</b>
+                      {" "}
+                      {r.apodo || "Sin dato"}
+                    </p>
+
+                    <p>
+                      <b>RUN:</b>
+                      {" "}
+                      {r.run || "Sin dato"}
+                    </p>
+
+                    <p>
+                      <b>Estado:</b>
+                      {" "}
+                      {r.estado || "Sin dato"}
+                    </p>
+
+                    <p>
+                      <b>Riesgo:</b>
+                      {" "}
+                      <span
+                        style={{
+                          color: colorRiesgo(r.riesgo),
+                          fontWeight: "bold"
+                        }}
+                      >
                         {r.riesgo || "Sin dato"}
                       </span>
                     </p>
 
                     <button
                       className="btn"
-                      onClick={() => router.push(`/registro/${r.id}`)}
-                      style={{ width: "100%", marginBottom: 8 }}
+                      onClick={() =>
+                        router.push(`/registro/${r.id}`)
+                      }
+                      style={{
+                        width: "100%",
+                        marginBottom: 8
+                      }}
                     >
                       📄 Ver ficha
                     </button>
 
                     <button
-                      onClick={() => abrirGoogleMaps(r.lat, r.lng)}
+                      onClick={() =>
+                        abrirGoogleMaps(r.lat, r.lng)
+                      }
                       style={{
                         width: "100%",
                         padding: 10,
@@ -166,14 +267,22 @@ export default function PanelCliente() {
                     >
                       🧭 Google Maps
                     </button>
+
                   </div>
+
                 </Popup>
+
               </Marker>
+
             ) : null
+
           )}
+
         </MapContainer>
+
       </div>
 
+      {/* PANEL */}
       <aside
         style={{
           padding: 15,
@@ -182,21 +291,34 @@ export default function PanelCliente() {
           borderLeft: "1px solid #dbe3ea"
         }}
       >
+
         <div className="card">
+
           <h2>🚨 Panel Operativo</h2>
 
           <p>
-            Registros visibles: <b>{filtrados.length}</b>
+            Registros visibles:
+            {" "}
+            <b>{filtrados.length}</b>
           </p>
 
           <input
             placeholder="Buscar nombre, apodo, RUN o sector"
             value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
+            onChange={(e) =>
+              setBusqueda(e.target.value)
+            }
           />
 
-          <div style={{ display: "grid", gap: 8 }}>
+          <div
+            style={{
+              display: "grid",
+              gap: 8
+            }}
+          >
+
             {estados.map((e) => (
+
               <button
                 key={e}
                 onClick={() => setFiltro(e)}
@@ -204,31 +326,53 @@ export default function PanelCliente() {
                   padding: 10,
                   borderRadius: 12,
                   border: "1px solid #dbe3ea",
-                  background: filtro === e ? "#1d4ed8" : "#fff",
-                  color: filtro === e ? "#fff" : "#0f172a",
+                  background:
+                    filtro === e
+                      ? "#1d4ed8"
+                      : "#fff",
+
+                  color:
+                    filtro === e
+                      ? "#fff"
+                      : "#0f172a",
+
                   fontWeight: "bold",
                   cursor: "pointer"
                 }}
               >
                 {e}
               </button>
+
             ))}
+
           </div>
+
         </div>
 
+        {/* TARJETAS */}
         {filtrados.map((r) => {
-          const dias = diasSinActualizar(r.ultima_actualizacion);
+
+          const dias = r.ultima_intervencion?.fecha
+            ? diasSinActualizar(
+                r.ultima_intervencion.fecha
+              )
+            : 999;
+
           const vencido = dias >= 7;
 
           return (
+
             <div
               key={r.id}
               className="card"
               style={{
-                borderLeft: `8px solid ${colorRiesgo(r.riesgo)}`
+                borderLeft:
+                  `8px solid ${colorRiesgo(r.riesgo)}`
               }}
             >
+
               {r.foto && (
+
                 <img
                   src={r.foto}
                   alt="foto"
@@ -240,55 +384,143 @@ export default function PanelCliente() {
                     marginBottom: 10
                   }}
                 />
+
               )}
 
-              <h3>{r.nombre || "Sin nombre"}</h3>
-
-              <p>Apodo: {r.apodo || "Sin dato"}</p>
-              <p>RUN: {r.run || "Sin dato"}</p>
-              <p>Sector: {r.sector || "Sin dato"}</p>
-              <p>Estado: {r.estado || "Sin dato"}</p>
+              <h3>
+                {r.nombre || "Sin nombre"}
+              </h3>
 
               <p>
-                Riesgo:{" "}
-                <b style={{ color: colorRiesgo(r.riesgo) }}>
+                Apodo:
+                {" "}
+                {r.apodo || "Sin dato"}
+              </p>
+
+              <p>
+                RUN:
+                {" "}
+                {r.run || "Sin dato"}
+              </p>
+
+              <p>
+                Sector:
+                {" "}
+                {r.sector || "Sin dato"}
+              </p>
+
+              <p>
+                Estado:
+                {" "}
+                {r.estado || "Sin dato"}
+              </p>
+
+              <p>
+                Riesgo:
+                {" "}
+                <b
+                  style={{
+                    color: colorRiesgo(r.riesgo)
+                  }}
+                >
                   {r.riesgo || "Sin dato"}
                 </b>
               </p>
 
-              {r.ultima_actualizacion ? (
-                <p>
-                  Última actualización:{" "}
-                  {new Date(r.ultima_actualizacion).toLocaleDateString("es-CL")}
-                </p>
+              {/* ÚLTIMO CONTACTO */}
+              {r.ultima_intervencion ? (
+
+                <div
+                  style={{
+                    background: "#eff6ff",
+                    padding: 10,
+                    borderRadius: 12,
+                    marginBottom: 10
+                  }}
+                >
+
+                  <p>
+                    <b>
+                      Último contacto
+                    </b>
+                  </p>
+
+                  <p>
+                    {new Date(
+                      r.ultima_intervencion.fecha
+                    ).toLocaleDateString("es-CL")}
+                  </p>
+
+                  <p>
+                    {r.ultima_intervencion.accion}
+                  </p>
+
+                  <p>
+                    Funcionario:
+                    {" "}
+                    {r.ultima_intervencion.funcionario}
+                  </p>
+
+                </div>
+
               ) : (
-                <p style={{ color: "#dc2626", fontWeight: "bold" }}>
-                  ⚠️ Sin actualización registrada
+
+                <p
+                  style={{
+                    color: "#dc2626",
+                    fontWeight: "bold"
+                  }}
+                >
+                  ⚠️ Sin intervenciones registradas
                 </p>
+
               )}
 
+              {/* ALERTAS */}
               {vencido && (
-                <p style={{ color: "#dc2626", fontWeight: "bold" }}>
-                  🚨 Sin actualización hace {dias} días
+
+                <p
+                  style={{
+                    color: "#dc2626",
+                    fontWeight: "bold"
+                  }}
+                >
+                  🚨 Sin contacto hace {dias} días
                 </p>
+
               )}
 
               {r.riesgo === "Crítico" && (
-                <p style={{ color: "#dc2626", fontWeight: "bold" }}>
+
+                <p
+                  style={{
+                    color: "#dc2626",
+                    fontWeight: "bold"
+                  }}
+                >
                   🔴 Prioridad inmediata
                 </p>
+
               )}
 
               <button
                 className="btn"
-                onClick={() => router.push(`/registro/${r.id}`)}
+                onClick={() =>
+                  router.push(`/registro/${r.id}`)
+                }
               >
                 📚 Ver ficha e historial
               </button>
+
             </div>
+
           );
+
         })}
+
       </aside>
+
     </div>
+
   );
 }
