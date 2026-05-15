@@ -225,7 +225,7 @@ export default function Nuevo() {
 
             img.onload = () => {
 
-              const MAX_WIDTH = 300;
+              const MAX_WIDTH = 120;
 
               let width = img.width;
               let height = img.height;
@@ -272,7 +272,7 @@ export default function Nuevo() {
 
                 },
                 "image/jpeg",
-                0.4
+                0.2
               );
 
             };
