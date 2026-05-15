@@ -7,13 +7,10 @@ import { supabase } from "../lib/supabase";
 import "../styles/globals.css";
 
 export default function App({ Component, pageProps }) {
-
   const router = useRouter();
-
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-
     verificar();
 
     const {
@@ -23,30 +20,22 @@ export default function App({ Component, pageProps }) {
     });
 
     return () => subscription.unsubscribe();
-
   }, []);
 
   const verificar = async () => {
-
     const {
       data: { session }
     } = await supabase.auth.getSession();
 
     if (!session && router.pathname !== "/login") {
-
       setLoading(false);
-
       router.push("/login");
-
       return;
     }
 
     if (session && router.pathname === "/login") {
-
       setLoading(false);
-
       router.push("/");
-
       return;
     }
 
@@ -54,9 +43,7 @@ export default function App({ Component, pageProps }) {
   };
 
   const cerrarSesion = async () => {
-
     await supabase.auth.signOut();
-
     router.push("/login");
   };
 
@@ -73,32 +60,45 @@ export default function App({ Component, pageProps }) {
       <nav
         style={{
           display: "flex",
-          gap: 15,
-          padding: 15,
-          background: "#111",
-          color: "white",
           alignItems: "center",
+          gap: 12,
+          padding: "10px 14px",
+          background: "#0f172a",
+          color: "white",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
           flexWrap: "wrap"
         }}
       >
-
-        <Link href="/">Inicio</Link>
+        <Link href="/">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              cursor: "pointer",
+              marginRight: 10
+            }}
+          >
+            <img
+              src="/logo.png"
+              alt="Logo"
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 10,
+                objectFit: "cover"
+              }}
+            />
+            <b>Protege Calle</b>
+          </div>
+        </Link>
 
         <Link href="/nuevo">Nuevo</Link>
-
-        <Link href="/registros">Registros</Link>
-
-        <Link href="/mapa">Mapa</Link>
-
+        <Link href="/registros">Buscar</Link>
         <Link href="/panel">Panel</Link>
-
-        <Link href="/pendientes">
-          Pendientes
-        </Link>
-
-        <Link href="/estadisticas">
-          Estadísticas
-        </Link>
+        <Link href="/mapa">Mapa</Link>
+        <Link href="/estadisticas">Datos</Link>
+        <Link href="/pendientes">Offline</Link>
 
         <button
           onClick={cerrarSesion}
@@ -108,13 +108,13 @@ export default function App({ Component, pageProps }) {
             color: "white",
             border: "none",
             padding: "8px 12px",
-            borderRadius: 6,
-            cursor: "pointer"
+            borderRadius: 10,
+            cursor: "pointer",
+            fontWeight: "bold"
           }}
         >
-          Cerrar sesión
+          Salir
         </button>
-
       </nav>
 
       <Component {...pageProps} />
