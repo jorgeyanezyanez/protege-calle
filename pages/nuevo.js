@@ -260,8 +260,6 @@ export default function Nuevo() {
             <option value="">Sexo</option>
             <option value="Hombre">Hombre</option>
             <option value="Mujer">Mujer</option>
-            <option value="No binario">No binario</option>
-            <option value="No responde">No responde</option>
           </select>
         </div>
 
