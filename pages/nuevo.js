@@ -160,7 +160,7 @@ export default function Nuevo() {
     };
 
     img.onload = () => {
-      const MAX_WIDTH = 120;
+      const MAX_WIDTH = 450;
 
       let width = img.width;
       let height = img.height;
@@ -188,7 +188,7 @@ export default function Nuevo() {
           setFile(compressedFile);
         },
         "image/jpeg",
-        0.2
+        0.6
       );
     };
   };
