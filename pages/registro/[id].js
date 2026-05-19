@@ -18,11 +18,14 @@ export default function Detalle() {
 
   useEffect(() => {
     if (!router.isReady || !id) return;
+
     cargar();
     cargarIntervenciones();
+
   }, [router.isReady, id]);
 
   const cargar = async () => {
+
     const { data } = await supabase
       .from("registros")
       .select("*")
@@ -33,6 +36,7 @@ export default function Detalle() {
   };
 
   const cargarIntervenciones = async () => {
+
     const { data } = await supabase
       .from("intervenciones")
       .select("*")
@@ -43,14 +47,25 @@ export default function Detalle() {
   };
 
   const handle = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    });
+
   };
 
   const handleNueva = (e) => {
-    setNueva({ ...nueva, [e.target.name]: e.target.value });
+
+    setNueva({
+      ...nueva,
+      [e.target.name]: e.target.value
+    });
+
   };
 
   const guardar = async () => {
+
     await supabase
       .from("registros")
       .update({
@@ -67,7 +82,9 @@ export default function Detalle() {
   };
 
   const comprimirFoto = (archivo) => {
+
     return new Promise((resolve) => {
+
       const img = document.createElement("img");
       const reader = new FileReader();
 
@@ -78,6 +95,7 @@ export default function Detalle() {
       };
 
       img.onload = () => {
+
         const MAX_WIDTH = 450;
 
         let width = img.width;
@@ -89,14 +107,17 @@ export default function Detalle() {
         }
 
         const canvas = document.createElement("canvas");
+
         canvas.width = width;
         canvas.height = height;
 
         const ctx = canvas.getContext("2d");
+
         ctx.drawImage(img, 0, 0, width, height);
 
         canvas.toBlob(
           (blob) => {
+
             const fotoComprimida = new File(
               [blob],
               `${Date.now()}.jpg`,
@@ -104,15 +125,20 @@ export default function Detalle() {
             );
 
             resolve(fotoComprimida);
+
           },
           "image/jpeg",
           0.6
         );
+
       };
+
     });
+
   };
 
   const actualizarFoto = async (e) => {
+
     const archivo = e.target.files[0];
 
     if (!archivo) return;
@@ -120,27 +146,35 @@ export default function Detalle() {
     setSubiendoFoto(true);
 
     try {
-      const fotoComprimida = await comprimirFoto(archivo);
 
-      const fileName = `${Date.now()}-${fotoComprimida.name}`;
+      const fotoComprimida =
+        await comprimirFoto(archivo);
 
-      const { error: uploadError } = await supabase
-        .storage
-        .from("fotos")
-        .upload(fileName, fotoComprimida, { upsert: true });
+      const fileName =
+        `${Date.now()}-${fotoComprimida.name}`;
+
+      const { error: uploadError } =
+        await supabase
+          .storage
+          .from("fotos")
+          .upload(fileName, fotoComprimida, {
+            upsert: true
+          });
 
       if (uploadError) {
         console.log(uploadError);
-        alert("Error al subir la nueva foto");
+        alert("Error al subir foto");
         return;
       }
 
-      const { data: urlData } = supabase
-        .storage
-        .from("fotos")
-        .getPublicUrl(fileName);
+      const { data: urlData } =
+        supabase
+          .storage
+          .from("fotos")
+          .getPublicUrl(fileName);
 
-      const nuevaFotoUrl = urlData.publicUrl;
+      const nuevaFotoUrl =
+        urlData.publicUrl;
 
       const { error } = await supabase
         .from("registros")
@@ -151,7 +185,7 @@ export default function Detalle() {
 
       if (error) {
         console.log(error);
-        alert("Error al actualizar la fotografía");
+        alert("Error al actualizar foto");
         return;
       }
 
@@ -161,18 +195,24 @@ export default function Detalle() {
       });
 
       alert("Fotografía actualizada");
+
     } finally {
+
       setSubiendoFoto(false);
+
     }
+
   };
 
   const actualizarUbicacion = () => {
+
     if (!navigator.geolocation) {
       alert("GPS no disponible");
       return;
     }
 
     navigator.geolocation.getCurrentPosition(async (pos) => {
+
       const nuevaLat = pos.coords.latitude;
       const nuevaLng = pos.coords.longitude;
 
@@ -198,31 +238,40 @@ export default function Detalle() {
       });
 
       alert("Ubicación actualizada");
+
     });
+
   };
 
   const abrirGoogleMaps = () => {
+
     window.open(
       `https://www.google.com/maps/search/?api=1&query=${form.lat},${form.lng}`,
       "_blank"
     );
+
   };
 
   const guardarIntervencion = async () => {
-    const { data: userData } = await supabase.auth.getUser();
+
+    const { data: userData } =
+      await supabase.auth.getUser();
 
     const funcionario =
-      userData?.user?.email || "Funcionario no identificado";
+      userData?.user?.email ||
+      "Funcionario no identificado";
 
-    const { error } = await supabase.from("intervenciones").insert([
-      {
-        registro_id: id,
-        funcionario,
-        accion: nueva.accion,
-        derivacion: nueva.derivacion,
-        observaciones: nueva.observaciones
-      }
-    ]);
+    const { error } = await supabase
+      .from("intervenciones")
+      .insert([
+        {
+          registro_id: id,
+          funcionario,
+          accion: nueva.accion,
+          derivacion: nueva.derivacion,
+          observaciones: nueva.observaciones
+        }
+      ]);
 
     if (error) {
       alert("Error al guardar intervención");
@@ -240,16 +289,24 @@ export default function Detalle() {
     alert("Intervención guardada");
   };
 
-  if (!form) return <p style={{ padding: 20 }}>Cargando...</p>;
+  if (!form)
+    return (
+      <p style={{ padding: 20 }}>
+        Cargando...
+      </p>
+    );
 
   return (
+
     <div className="container">
+
       <style jsx global>{`
         .only-print {
           display: none;
         }
 
         @media print {
+
           nav,
           .no-print {
             display: none !important;
@@ -271,6 +328,7 @@ export default function Detalle() {
       `}</style>
 
       <div className="card">
+
         <div
           style={{
             display: "flex",
@@ -279,7 +337,9 @@ export default function Detalle() {
             flexWrap: "wrap"
           }}
         >
+
           {form.foto ? (
+
             <img
               src={form.foto}
               alt="Foto"
@@ -291,7 +351,9 @@ export default function Detalle() {
                 border: "1px solid #ddd"
               }}
             />
+
           ) : (
+
             <div
               style={{
                 width: 130,
@@ -306,40 +368,94 @@ export default function Detalle() {
             >
               👤
             </div>
+
           )}
 
           <div>
-            <h1>{form.nombre || "Sin nombre"}</h1>
-            <p>Apodo: {form.apodo || "Sin dato"}</p>
-            <p>RUN: {form.run || "Sin dato"}</p>
-            <p>Estado: <b>{form.estado || "Sin dato"}</b></p>
-            <p>Riesgo: <b>{form.riesgo || "Sin dato"}</b></p>
+
+            <h1>
+              {form.nombre || "Sin nombre"}
+            </h1>
+
+            <p>
+              Apodo:
+              {" "}
+              {form.apodo || "Sin dato"}
+            </p>
+
+            <p>
+              RUN:
+              {" "}
+              {form.run || "Sin dato"}
+            </p>
+
+            <p>
+              Estado:
+              {" "}
+              <b>
+                {form.estado || "Sin dato"}
+              </b>
+            </p>
+
+            <p>
+              Riesgo:
+              {" "}
+              <b>
+                {form.riesgo || "Sin dato"}
+              </b>
+            </p>
+
           </div>
+
         </div>
+
       </div>
 
       <div className="no-print card">
+
         <h2>Acciones rápidas</h2>
 
         <div className="grid-btn">
-          <button className="btn" onClick={guardar}>
+
+          <button
+            className="btn"
+            onClick={guardar}
+          >
             💾 Guardar ficha
           </button>
 
-          <button className="btn" onClick={() => window.print()}>
+          <button
+            className="btn"
+            onClick={() => window.print()}
+          >
             🖨️ Imprimir / PDF
           </button>
 
-          <button className="btn" onClick={actualizarUbicacion}>
+          <button
+            className="btn"
+            onClick={actualizarUbicacion}
+          >
             📍 Actualizar ubicación
           </button>
 
-          <button className="btn" onClick={abrirGoogleMaps}>
+          <button
+            className="btn"
+            onClick={abrirGoogleMaps}
+          >
             🧭 Google Maps
           </button>
 
-          <label className="btn" style={{ textAlign: "center" }}>
-            {subiendoFoto ? "Subiendo foto..." : "📸 Actualizar foto"}
+          <label
+            className="btn"
+            style={{
+              textAlign: "center"
+            }}
+          >
+
+            {subiendoFoto
+              ? "Subiendo foto..."
+              : "📸 Actualizar foto"}
+
             <input
               type="file"
               accept="image/*"
@@ -348,12 +464,17 @@ export default function Detalle() {
               style={{ display: "none" }}
               disabled={subiendoFoto}
             />
+
           </label>
+
         </div>
+
       </div>
 
       <div className="card only-print">
+
         <h2>Identificación</h2>
+
         <p><b>Nombre:</b> {form.nombre}</p>
         <p><b>Apodo:</b> {form.apodo}</p>
         <p><b>RUN:</b> {form.run}</p>
@@ -362,22 +483,34 @@ export default function Detalle() {
         <p><b>Sexo:</b> {form.sexo}</p>
 
         <h2>Ubicación</h2>
+
         <p><b>Sector:</b> {form.sector}</p>
         <p><b>Referencia:</b> {form.referencia}</p>
         <p><b>Latitud:</b> {form.lat}</p>
         <p><b>Longitud:</b> {form.lng}</p>
+
         <p>
-          <b>Última actualización:</b>{" "}
+          <b>Última actualización:</b>
+          {" "}
           {form.ultima_actualizacion
-            ? new Date(form.ultima_actualizacion).toLocaleString("es-CL")
+            ? new Date(form.ultima_actualizacion)
+                .toLocaleString("es-CL", {
+                  timeZone: "America/Santiago"
+                })
             : "Sin información"}
         </p>
+
       </div>
 
       <div className="card">
+
         <h2>⚠️ Situación actual</h2>
 
-        <select name="estado" value={form.estado || ""} onChange={handle}>
+        <select
+          name="estado"
+          value={form.estado || ""}
+          onChange={handle}
+        >
           <option value="">Estado</option>
           <option>En calle</option>
           <option>Atendido</option>
@@ -386,44 +519,16 @@ export default function Detalle() {
           <option>Sin ubicación</option>
         </select>
 
-        <select name="riesgo" value={form.riesgo || ""} onChange={handle}>
+        <select
+          name="riesgo"
+          value={form.riesgo || ""}
+          onChange={handle}
+        >
           <option value="">Riesgo</option>
           <option>Bajo</option>
           <option>Medio</option>
           <option>Alto</option>
           <option>Crítico</option>
-        </select>
-
-        <select name="consumo" value={form.consumo || ""} onChange={handle}>
-          <option value="">Consumo</option>
-          <option>No</option>
-          <option>Alcohol</option>
-          <option>Drogas</option>
-          <option>Ambos</option>
-        </select>
-
-        <select
-          name="saludmental"
-          value={form.saludmental || ""}
-          onChange={handle}
-        >
-          <option value="">Salud mental</option>
-          <option>Sin diagnóstico</option>
-          <option>Sospecha</option>
-          <option>Diagnóstico confirmado</option>
-          <option>Tratamiento</option>
-        </select>
-
-        <select
-          name="aceptaalbergue"
-          value={form.aceptaalbergue || ""}
-          onChange={handle}
-        >
-          <option value="">Acepta albergue</option>
-          <option>Sí</option>
-          <option>No</option>
-          <option>Rechaza</option>
-          <option>Pendiente</option>
         </select>
 
         <textarea
@@ -433,21 +538,56 @@ export default function Detalle() {
           placeholder="Observaciones generales"
           rows={4}
         />
+
       </div>
 
       <div className="no-print card">
-        <h2>📝 Nueva intervención</h2>
 
-        <select name="accion" value={nueva.accion} onChange={handleNueva}>
-          <option value="">Acción realizada</option>
-          <option>Contacto en terreno</option>
-          <option>Entrega de orientación</option>
-          <option>Control preventivo</option>
-          <option>Coordinación municipal</option>
-          <option>Derivación a salud</option>
-          <option>Derivación a albergue</option>
-          <option>Rechaza ayuda</option>
-          <option>No ubicado</option>
+        <h2>
+          📝 Nueva intervención
+        </h2>
+
+        <select
+          name="accion"
+          value={nueva.accion}
+          onChange={handleNueva}
+        >
+          <option value="">
+            Acción realizada
+          </option>
+
+          <option>
+            Contacto en terreno
+          </option>
+
+          <option>
+            Entrega de orientación
+          </option>
+
+          <option>
+            Control preventivo
+          </option>
+
+          <option>
+            Coordinación municipal
+          </option>
+
+          <option>
+            Derivación a salud
+          </option>
+
+          <option>
+            Derivación a albergue
+          </option>
+
+          <option>
+            Rechaza ayuda
+          </option>
+
+          <option>
+            No ubicado
+          </option>
+
         </select>
 
         <input
@@ -465,19 +605,29 @@ export default function Detalle() {
           rows={4}
         />
 
-        <button onClick={guardarIntervencion} className="btn">
+        <button
+          onClick={guardarIntervencion}
+          className="btn"
+        >
           ➕ Guardar intervención
         </button>
+
       </div>
 
       <div className="card">
-        <h2>📚 Historial de intervenciones</h2>
+
+        <h2>
+          📚 Historial de intervenciones
+        </h2>
 
         {intervenciones.length === 0 && (
-          <p>No hay intervenciones registradas.</p>
+          <p>
+            No hay intervenciones registradas.
+          </p>
         )}
 
         {intervenciones.map((i) => (
+
           <div
             key={i.id}
             style={{
@@ -486,14 +636,45 @@ export default function Detalle() {
               marginTop: 12
             }}
           >
-            <h3>{i.accion}</h3>
-            <p>Fecha: {new Date(i.fecha).toLocaleString("es-CL")}</p>
-            <p>Funcionario: {i.funcionario}</p>
-            <p>Derivación: {i.derivacion}</p>
-            <p>Observaciones: {i.observaciones}</p>
+
+            <h3>
+              {i.accion}
+            </h3>
+
+            <p>
+              Fecha:
+              {" "}
+              {new Date(i.fecha)
+                .toLocaleString("es-CL", {
+                  timeZone: "America/Santiago"
+                })}
+            </p>
+
+            <p>
+              Funcionario:
+              {" "}
+              {i.funcionario}
+            </p>
+
+            <p>
+              Derivación:
+              {" "}
+              {i.derivacion}
+            </p>
+
+            <p>
+              Observaciones:
+              {" "}
+              {i.observaciones}
+            </p>
+
           </div>
+
         ))}
+
       </div>
+
     </div>
+
   );
 }

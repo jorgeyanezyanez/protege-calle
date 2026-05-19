@@ -2,26 +2,42 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabase";
 
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup
+} from "react-leaflet";
+
 import "leaflet/dist/leaflet.css";
+
 import L from "leaflet";
 
 delete L.Icon.Default.prototype._getIconUrl;
 
 L.Icon.Default.mergeOptions({
-  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+  iconUrl:
+    "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
+
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
+
+  shadowUrl:
+    "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
 });
 
 export default function PanelCliente() {
+
   const router = useRouter();
 
   const [data, setData] = useState([]);
+
   const [filtro, setFiltro] = useState("Todos");
+
   const [busqueda, setBusqueda] = useState("");
 
   useEffect(() => {
+
     cargar();
 
     const interval = setInterval(() => {
@@ -29,6 +45,7 @@ export default function PanelCliente() {
     }, 10000);
 
     return () => clearInterval(interval);
+
   }, []);
 
   const cargar = async () => {
@@ -68,18 +85,28 @@ export default function PanelCliente() {
   };
 
   const diasSinActualizar = (fecha) => {
+
     if (!fecha) return 999;
 
     const hoy = new Date();
+
     const ultima = new Date(fecha);
+
     const diff = hoy - ultima;
 
-    return Math.floor(diff / (1000 * 60 * 60 * 24));
+    return Math.floor(
+      diff / (1000 * 60 * 60 * 24)
+    );
+
   };
 
   const prioridad = (r) => {
-    if (r.riesgo === "Crítico") return 1;
-    if (r.riesgo === "Alto") return 2;
+
+    if (r.riesgo === "Crítico")
+      return 1;
+
+    if (r.riesgo === "Alto")
+      return 2;
 
     if (r.ultima_intervencion?.fecha) {
 
@@ -87,19 +114,29 @@ export default function PanelCliente() {
         r.ultima_intervencion.fecha
       );
 
-      if (dias >= 7) return 3;
+      if (dias >= 7)
+        return 3;
     }
 
-    if (r.riesgo === "Medio") return 4;
+    if (r.riesgo === "Medio")
+      return 4;
 
     return 5;
   };
 
   const colorRiesgo = (riesgo) => {
-    if (riesgo === "Crítico") return "#dc2626";
-    if (riesgo === "Alto") return "#f97316";
-    if (riesgo === "Medio") return "#f59e0b";
-    if (riesgo === "Bajo") return "#22c55e";
+
+    if (riesgo === "Crítico")
+      return "#dc2626";
+
+    if (riesgo === "Alto")
+      return "#f97316";
+
+    if (riesgo === "Medio")
+      return "#f59e0b";
+
+    if (riesgo === "Bajo")
+      return "#22c55e";
 
     return "#64748b";
   };
@@ -107,13 +144,21 @@ export default function PanelCliente() {
   const filtrados = data
     .filter((r) => {
 
-      const texto = busqueda.toLowerCase();
+      const texto =
+        busqueda.toLowerCase();
 
       const coincideBusqueda =
-        r.nombre?.toLowerCase().includes(texto) ||
-        r.apodo?.toLowerCase().includes(texto) ||
-        r.run?.toLowerCase().includes(texto) ||
-        r.sector?.toLowerCase().includes(texto);
+        r.nombre?.toLowerCase()
+          .includes(texto) ||
+
+        r.apodo?.toLowerCase()
+          .includes(texto) ||
+
+        r.run?.toLowerCase()
+          .includes(texto) ||
+
+        r.sector?.toLowerCase()
+          .includes(texto);
 
       const coincideEstado =
         filtro === "Todos" ||
@@ -125,7 +170,9 @@ export default function PanelCliente() {
       );
 
     })
-    .sort((a, b) => prioridad(a) - prioridad(b));
+    .sort((a, b) =>
+      prioridad(a) - prioridad(b)
+    );
 
   const estados = [
     "Todos",
@@ -228,6 +275,7 @@ export default function PanelCliente() {
                     <p>
                       <b>Riesgo:</b>
                       {" "}
+
                       <span
                         style={{
                           color: colorRiesgo(r.riesgo),
@@ -236,12 +284,15 @@ export default function PanelCliente() {
                       >
                         {r.riesgo || "Sin dato"}
                       </span>
+
                     </p>
 
                     <button
                       className="btn"
                       onClick={() =>
-                        router.push(`/registro/${r.id}`)
+                        router.push(
+                          `/registro/${r.id}`
+                        )
                       }
                       style={{
                         width: "100%",
@@ -253,7 +304,10 @@ export default function PanelCliente() {
 
                     <button
                       onClick={() =>
-                        abrirGoogleMaps(r.lat, r.lng)
+                        abrirGoogleMaps(
+                          r.lat,
+                          r.lng
+                        )
                       }
                       style={{
                         width: "100%",
@@ -288,25 +342,32 @@ export default function PanelCliente() {
           padding: 15,
           overflowY: "auto",
           background: "#f8fafc",
-          borderLeft: "1px solid #dbe3ea"
+          borderLeft:
+            "1px solid #dbe3ea"
         }}
       >
 
         <div className="card">
 
-          <h2>🚨 Panel Operativo</h2>
+          <h2>
+            🚨 Panel Operativo
+          </h2>
 
           <p>
             Registros visibles:
             {" "}
-            <b>{filtrados.length}</b>
+            <b>
+              {filtrados.length}
+            </b>
           </p>
 
           <input
             placeholder="Buscar nombre, apodo, RUN o sector"
             value={busqueda}
             onChange={(e) =>
-              setBusqueda(e.target.value)
+              setBusqueda(
+                e.target.value
+              )
             }
           />
 
@@ -321,11 +382,15 @@ export default function PanelCliente() {
 
               <button
                 key={e}
-                onClick={() => setFiltro(e)}
+                onClick={() =>
+                  setFiltro(e)
+                }
                 style={{
                   padding: 10,
                   borderRadius: 12,
-                  border: "1px solid #dbe3ea",
+                  border:
+                    "1px solid #dbe3ea",
+
                   background:
                     filtro === e
                       ? "#1d4ed8"
@@ -352,13 +417,16 @@ export default function PanelCliente() {
         {/* TARJETAS */}
         {filtrados.map((r) => {
 
-          const dias = r.ultima_intervencion?.fecha
-            ? diasSinActualizar(
-                r.ultima_intervencion.fecha
-              )
-            : 999;
+          const dias =
+            r.ultima_intervencion?.fecha
+              ? diasSinActualizar(
+                  r.ultima_intervencion
+                    .fecha
+                )
+              : 999;
 
-          const vencido = dias >= 7;
+          const vencido =
+            dias >= 7;
 
           return (
 
@@ -367,7 +435,9 @@ export default function PanelCliente() {
               className="card"
               style={{
                 borderLeft:
-                  `8px solid ${colorRiesgo(r.riesgo)}`
+                  `8px solid ${colorRiesgo(
+                    r.riesgo
+                  )}`
               }}
             >
 
@@ -418,13 +488,18 @@ export default function PanelCliente() {
               <p>
                 Riesgo:
                 {" "}
+
                 <b
                   style={{
-                    color: colorRiesgo(r.riesgo)
+                    color:
+                      colorRiesgo(
+                        r.riesgo
+                      )
                   }}
                 >
                   {r.riesgo || "Sin dato"}
                 </b>
+
               </p>
 
               {/* ÚLTIMO CONTACTO */}
@@ -447,18 +522,30 @@ export default function PanelCliente() {
 
                   <p>
                     {new Date(
-                      r.ultima_intervencion.fecha
-                    ).toLocaleDateString("es-CL")}
+                      r.ultima_intervencion
+                        .fecha
+                    ).toLocaleDateString(
+                      "es-CL",
+                      {
+                        timeZone:
+                          "America/Santiago"
+                      }
+                    )}
                   </p>
 
                   <p>
-                    {r.ultima_intervencion.accion}
+                    {r.ultima_intervencion
+                      .accion}
                   </p>
 
                   <p>
                     Funcionario:
                     {" "}
-                    {r.ultima_intervencion.funcionario}
+                    {
+                      r
+                        .ultima_intervencion
+                        .funcionario
+                    }
                   </p>
 
                 </div>
@@ -506,7 +593,9 @@ export default function PanelCliente() {
               <button
                 className="btn"
                 onClick={() =>
-                  router.push(`/registro/${r.id}`)
+                  router.push(
+                    `/registro/${r.id}`
+                  )
                 }
               >
                 📚 Ver ficha e historial
