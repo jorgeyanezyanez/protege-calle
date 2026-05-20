@@ -1,4 +1,3 @@
-dame el codigo completo de MapaHistorial.js
 import { useEffect, useState } from "react";
 
 import {
@@ -200,7 +199,9 @@ export default function MapaHistorial({
         ))}
 
         {/* UBICACIÓN ACTUAL */}
-        <Marker position={centro}>
+        <Marker
+          position={centro}
+        >
 
           <Popup>
             📍 Ubicación actual
@@ -226,4 +227,5 @@ export default function MapaHistorial({
     </div>
 
   );
+
 }
