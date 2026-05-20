@@ -33,112 +33,45 @@ export default function MapaHistorial({
   lng
 }) {
 
-  const [historial, setHistorial] =
-    useState([]);
-
-  const [loading, setLoading] =
-    useState(true);
+  const [historial, setHistorial] = useState([]);
 
   useEffect(() => {
-
-    if (!registroId) return;
-
     cargarHistorial();
-
   }, [registroId]);
 
   const cargarHistorial = async () => {
 
-    setLoading(true);
+    const { data } = await supabase
+      .from("ubicaciones_historial")
+      .select("*")
+      .eq("registro_id", registroId)
+      .order("fecha", {
+        ascending: true
+      });
 
-    const { data, error } =
-      await supabase
-        .from("ubicaciones_historial")
-        .select("*")
-        .eq("registro_id", registroId)
-        .order("fecha", {
-          ascending: true
-        });
-
-    if (error) {
-
-      console.log(
-        "Error cargando historial:",
-        error
-      );
-
-      setHistorial([]);
-
-    } else {
-
-      console.log(
-        "Historial:",
-        data
-      );
-
-      setHistorial(data || []);
-
-    }
-
-    setLoading(false);
-
+    setHistorial(data || []);
   };
 
-  const puntos = historial
-    .filter((p) => p.lat && p.lng)
-    .map((p) => [
-      Number(p.lat),
-      Number(p.lng)
-    ]);
-
-  const centro = [
-    Number(lat),
-    Number(lng)
-  ];
+  const puntos = historial.map((p) => [
+    Number(p.lat),
+    Number(p.lng)
+  ]);
 
   return (
 
     <div
       style={{
-        height: "calc(100vh - 60px)",
-        position: "relative"
+        height: "600px",
+        borderRadius: 20,
+        overflow: "hidden"
       }}
     >
 
-      {/* PANEL */}
-      <div
-        style={{
-          position: "absolute",
-          top: 15,
-          left: 15,
-          zIndex: 1000,
-          background: "white",
-          padding: 12,
-          borderRadius: 14,
-          boxShadow:
-            "0 10px 25px rgba(0,0,0,0.2)"
-        }}
-      >
-
-        <b>
-          🗺️ Historial de ubicaciones
-        </b>
-
-        <p style={{ margin: 0 }}>
-          Puntos:
-          {" "}
-          {historial.length}
-        </p>
-
-        {loading && (
-          <p>Cargando...</p>
-        )}
-
-      </div>
-
-      {/* MAPA */}
       <MapContainer
-        center={centro}
+        center={[
+          Number(lat),
+          Number(lng)
+        ]}
         zoom={16}
         style={{
           height: "100%",
@@ -150,8 +83,8 @@ export default function MapaHistorial({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* PUNTOS HISTORIAL */}
-        {historial.map((p, index) => (
+        {/* HISTORIAL */}
+        {historial.map((p) => (
 
           <Marker
             key={p.id}
@@ -165,30 +98,29 @@ export default function MapaHistorial({
 
               <div>
 
-                <b>
-                  Ubicación #{index + 1}
-                </b>
+                <p>
+                  <b>
+                    Historial ubicación
+                  </b>
+                </p>
 
-                <br />
+                <p>
+                  {new Date(
+                    p.fecha
+                  ).toLocaleString(
+                    "es-CL",
+                    {
+                      timeZone:
+                        "America/Santiago"
+                    }
+                  )}
+                </p>
 
-                Fecha:
-                {" "}
-
-                {new Date(
-                  p.fecha
-                ).toLocaleString(
-                  "es-CL",
-                  {
-                    timeZone:
-                      "America/Santiago"
-                  }
-                )}
-
-                <br />
-
-                Tipo:
-                {" "}
-                {p.tipo}
+                <p>
+                  Tipo:
+                  {" "}
+                  {p.tipo}
+                </p>
 
               </div>
 
@@ -200,7 +132,10 @@ export default function MapaHistorial({
 
         {/* UBICACIÓN ACTUAL */}
         <Marker
-          position={centro}
+          position={[
+            Number(lat),
+            Number(lng)
+          ]}
         >
 
           <Popup>
@@ -209,7 +144,7 @@ export default function MapaHistorial({
 
         </Marker>
 
-        {/* LÍNEA RECORRIDO */}
+        {/* LÍNEA HISTORIAL */}
         {puntos.length > 1 && (
 
           <Polyline
@@ -227,5 +162,4 @@ export default function MapaHistorial({
     </div>
 
   );
-
 }
