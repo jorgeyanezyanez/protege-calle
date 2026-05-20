@@ -1,19 +1,58 @@
 import { useRouter } from "next/router";
+
 import dynamic from "next/dynamic";
 
 const MapaCliente = dynamic(
   () => import("../components/MapaCliente"),
-  { ssr: false }
+  {
+    ssr: false
+  }
+);
+
+const MapaHistorial = dynamic(
+  () => import("../components/MapaHistorial"),
+  {
+    ssr: false
+  }
 );
 
 export default function Mapa() {
 
   const router = useRouter();
 
+  const {
+    lat,
+    lng,
+    id
+  } = router.query;
+
+  // =====================================
+  // MOSTRAR HISTORIAL
+  // =====================================
+  if (id && lat && lng) {
+
+    return (
+
+      <MapaHistorial
+        registroId={id}
+        lat={lat}
+        lng={lng}
+      />
+
+    );
+
+  }
+
+  // =====================================
+  // MAPA NORMAL
+  // =====================================
   return (
+
     <MapaCliente
-      focusLat={router.query.lat}
-      focusLng={router.query.lng}
+      focusLat={lat}
+      focusLng={lng}
     />
+
   );
+
 }
