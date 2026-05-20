@@ -205,35 +205,12 @@ export default function Detalle() {
             Identificación
           </h2>
 
-          <p>
-            <b>Nombre:</b>
-            ${form.nombre || ""}
-          </p>
-
-          <p>
-            <b>Apodo:</b>
-            ${form.apodo || ""}
-          </p>
-
-          <p>
-            <b>RUN:</b>
-            ${form.run || ""}
-          </p>
-
-          <p>
-            <b>Edad:</b>
-            ${form.edad || ""}
-          </p>
-
-          <p>
-            <b>Sexo:</b>
-            ${form.sexo || ""}
-          </p>
-
-          <p>
-            <b>Nacionalidad:</b>
-            ${form.nacionalidad || ""}
-          </p>
+          <p><b>Nombre:</b> ${form.nombre || ""}</p>
+          <p><b>Apodo:</b> ${form.apodo || ""}</p>
+          <p><b>RUN:</b> ${form.run || ""}</p>
+          <p><b>Edad:</b> ${form.edad || ""}</p>
+          <p><b>Sexo:</b> ${form.sexo || ""}</p>
+          <p><b>Nacionalidad:</b> ${form.nacionalidad || ""}</p>
 
           <hr />
 
@@ -241,44 +218,10 @@ export default function Detalle() {
             Ubicación
           </h2>
 
-          <p>
-            <b>Sector:</b>
-            ${form.sector || ""}
-          </p>
-
-          <p>
-            <b>Referencia:</b>
-            ${form.referencia || ""}
-          </p>
-
-          <p>
-            <b>Latitud:</b>
-            ${form.lat || ""}
-          </p>
-
-          <p>
-            <b>Longitud:</b>
-            ${form.lng || ""}
-          </p>
-
-          <p>
-            <b>Última actualización:</b>
-
-            ${
-              form.ultima_actualizacion
-                ? new Date(
-                    form.ultima_actualizacion
-                  ).toLocaleString(
-                    "es-CL",
-                    {
-                      timeZone:
-                        "America/Santiago"
-                    }
-                  )
-                : "Sin información"
-            }
-
-          </p>
+          <p><b>Sector:</b> ${form.sector || ""}</p>
+          <p><b>Referencia:</b> ${form.referencia || ""}</p>
+          <p><b>Latitud:</b> ${form.lat || ""}</p>
+          <p><b>Longitud:</b> ${form.lng || ""}</p>
 
           <hr />
 
@@ -286,35 +229,12 @@ export default function Detalle() {
             Situación actual
           </h2>
 
-          <p>
-            <b>Estado:</b>
-            ${form.estado || ""}
-          </p>
-
-          <p>
-            <b>Riesgo:</b>
-            ${form.riesgo || ""}
-          </p>
-
-          <p>
-            <b>Consumo:</b>
-            ${form.consumo || ""}
-          </p>
-
-          <p>
-            <b>Salud mental:</b>
-            ${form.saludmental || ""}
-          </p>
-
-          <p>
-            <b>Acepta albergue:</b>
-            ${form.aceptaalbergue || ""}
-          </p>
-
-          <p>
-            <b>Observaciones:</b>
-            ${form.observaciones || ""}
-          </p>
+          <p><b>Estado:</b> ${form.estado || ""}</p>
+          <p><b>Riesgo:</b> ${form.riesgo || ""}</p>
+          <p><b>Consumo:</b> ${form.consumo || ""}</p>
+          <p><b>Salud mental:</b> ${form.saludmental || ""}</p>
+          <p><b>Acepta albergue:</b> ${form.aceptaalbergue || ""}</p>
+          <p><b>Observaciones:</b> ${form.observaciones || ""}</p>
 
           <hr />
 
@@ -709,12 +629,69 @@ export default function Detalle() {
           Nueva intervención
         </h2>
 
-        <input
+        <select
           name="accion"
-          placeholder="Acción"
           value={nueva.accion}
           onChange={handleNueva}
-        />
+        >
+
+          <option value="">
+            Seleccionar acción
+          </option>
+
+          <option>
+            Contacto en terreno
+          </option>
+
+          <option>
+            Control preventivo
+          </option>
+
+          <option>
+            Entrega de alimentación
+          </option>
+
+          <option>
+            Entrega de orientación
+          </option>
+
+          <option>
+            Coordinación municipal
+          </option>
+
+          <option>
+            Derivación a salud
+          </option>
+
+          <option>
+            Derivación a albergue
+          </option>
+
+          <option>
+            Traslado voluntario
+          </option>
+
+          <option>
+            Rechaza ayuda
+          </option>
+
+          <option>
+            Persona no ubicada
+          </option>
+
+          <option>
+            Persona agresiva
+          </option>
+
+          <option>
+            Consumo problemático
+          </option>
+
+          <option>
+            Crisis de salud mental
+          </option>
+
+        </select>
 
         <input
           name="derivacion"
