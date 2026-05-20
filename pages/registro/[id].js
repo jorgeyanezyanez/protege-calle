@@ -85,21 +85,63 @@ export default function Detalle() {
 
   };
 
+  // ==========================================
+  // ACTUALIZAR UBICACIÓN + HISTORIAL
+  // ==========================================
   const actualizarUbicacion = () => {
 
     if (!navigator.geolocation) {
+
       alert("GPS no disponible");
       return;
+
     }
 
     navigator.geolocation.getCurrentPosition(async (pos) => {
 
+      // UBICACIÓN ANTERIOR
+      const latAnterior = form.lat;
+      const lngAnterior = form.lng;
+
+      // NUEVA UBICACIÓN
       const nuevaLat = pos.coords.latitude;
       const nuevaLng = pos.coords.longitude;
 
       const fechaActual =
         new Date().toISOString();
 
+      // =====================================
+      // 1. GUARDAR UBICACIÓN ANTERIOR
+      // =====================================
+      if (latAnterior && lngAnterior) {
+
+        const { error: errorAnterior } =
+          await supabase
+            .from("ubicaciones_historial")
+            .insert([
+              {
+                registro_id: id,
+                lat: latAnterior,
+                lng: lngAnterior,
+                fecha: fechaActual,
+                tipo: "ubicacion_anterior"
+              }
+            ]);
+
+        if (errorAnterior) {
+
+          console.log(
+            "Error guardando ubicación anterior",
+            errorAnterior
+          );
+
+        }
+
+      }
+
+      // =====================================
+      // 2. ACTUALIZAR REGISTRO PRINCIPAL
+      // =====================================
       const { error } = await supabase
         .from("registros")
         .update({
@@ -110,22 +152,45 @@ export default function Detalle() {
         .eq("id", id);
 
       if (error) {
-        alert("Error al actualizar ubicación");
+
+        console.log(error);
+
+        alert(
+          "Error al actualizar ubicación"
+        );
+
         return;
+
       }
 
-      await supabase
-        .from("ubicaciones_historial")
-        .insert([
-          {
-            registro_id: id,
-            lat: nuevaLat,
-            lng: nuevaLng,
-            fecha: fechaActual,
-            tipo: "actualizacion"
-          }
-        ]);
+      // =====================================
+      // 3. GUARDAR NUEVA UBICACIÓN
+      // =====================================
+      const { error: errorNueva } =
+        await supabase
+          .from("ubicaciones_historial")
+          .insert([
+            {
+              registro_id: id,
+              lat: nuevaLat,
+              lng: nuevaLng,
+              fecha: fechaActual,
+              tipo: "nueva_ubicacion"
+            }
+          ]);
 
+      if (errorNueva) {
+
+        console.log(
+          "Error guardando nueva ubicación",
+          errorNueva
+        );
+
+      }
+
+      // =====================================
+      // 4. ACTUALIZAR ESTADO LOCAL
+      // =====================================
       setForm({
         ...form,
         lat: nuevaLat,
@@ -134,7 +199,7 @@ export default function Detalle() {
       });
 
       alert(
-        "Ubicación actualizada"
+        "Ubicación actualizada y historial guardado"
       );
 
     });
@@ -180,10 +245,13 @@ export default function Detalle() {
       ]);
 
     if (error) {
+
       alert(
         "Error al guardar intervención"
       );
+
       return;
+
     }
 
     setNueva({
@@ -211,34 +279,6 @@ export default function Detalle() {
 
     <div className="container">
 
-      <style jsx global>{`
-        .only-print {
-          display: none;
-        }
-
-        @media print {
-
-          nav,
-          .no-print {
-            display: none !important;
-          }
-
-          .only-print {
-            display: block !important;
-          }
-
-          body {
-            background: white !important;
-          }
-
-          .card {
-            box-shadow: none !important;
-            border: 1px solid #ccc !important;
-          }
-        }
-      `}</style>
-
-      {/* CABECERA */}
       <div className="card">
 
         <h1>
@@ -291,7 +331,7 @@ export default function Detalle() {
       </div>
 
       {/* ACCIONES */}
-      <div className="card no-print">
+      <div className="card">
 
         <h2>
           Acciones rápidas
@@ -338,150 +378,6 @@ export default function Detalle() {
 
       </div>
 
-      {/* SOLO IMPRESIÓN */}
-      <div className="card only-print">
-
-        <h1>
-          FICHA TERRITORIAL
-        </h1>
-
-        <hr />
-
-        <h2>
-          Identificación
-        </h2>
-
-        <p><b>Nombre:</b> {form.nombre}</p>
-        <p><b>Apodo:</b> {form.apodo}</p>
-        <p><b>RUN:</b> {form.run}</p>
-        <p><b>Edad:</b> {form.edad}</p>
-        <p><b>Sexo:</b> {form.sexo}</p>
-        <p><b>Nacionalidad:</b> {form.nacionalidad}</p>
-
-        <hr />
-
-        <h2>
-          Ubicación
-        </h2>
-
-        <p><b>Sector:</b> {form.sector}</p>
-        <p><b>Referencia:</b> {form.referencia}</p>
-
-        <p>
-          <b>Latitud:</b>
-          {" "}
-          {form.lat}
-        </p>
-
-        <p>
-          <b>Longitud:</b>
-          {" "}
-          {form.lng}
-        </p>
-
-        <p>
-          <b>Última actualización:</b>
-          {" "}
-
-          {form.ultima_actualizacion
-            ? new Date(
-                form.ultima_actualizacion
-              ).toLocaleString(
-                "es-CL",
-                {
-                  timeZone:
-                    "America/Santiago"
-                }
-              )
-            : "Sin información"}
-
-        </p>
-
-        <hr />
-
-        <h2>
-          Situación actual
-        </h2>
-
-        <p><b>Estado:</b> {form.estado}</p>
-        <p><b>Riesgo:</b> {form.riesgo}</p>
-        <p><b>Observaciones:</b></p>
-
-        <p>
-          {form.observaciones}
-        </p>
-
-        <hr />
-
-        <h2>
-          Historial intervenciones
-        </h2>
-
-        {intervenciones.length === 0 && (
-
-          <p>
-            No existen intervenciones registradas.
-          </p>
-
-        )}
-
-        {intervenciones.map((i) => (
-
-          <div
-            key={i.id}
-            style={{
-              marginBottom: 20,
-              paddingBottom: 10,
-              borderBottom:
-                "1px solid #ccc"
-            }}
-          >
-
-            <p>
-              <b>Fecha:</b>
-              {" "}
-
-              {new Date(i.fecha)
-                .toLocaleString(
-                  "es-CL",
-                  {
-                    timeZone:
-                      "America/Santiago"
-                  }
-                )}
-
-            </p>
-
-            <p>
-              <b>Funcionario:</b>
-              {" "}
-              {i.funcionario}
-            </p>
-
-            <p>
-              <b>Acción:</b>
-              {" "}
-              {i.accion}
-            </p>
-
-            <p>
-              <b>Derivación:</b>
-              {" "}
-              {i.derivacion}
-            </p>
-
-            <p>
-              <b>Observaciones:</b>
-              {" "}
-              {i.observaciones}
-            </p>
-
-          </div>
-
-        ))}
-
-      </div>
-
       {/* SITUACIÓN */}
       <div className="card">
 
@@ -494,6 +390,7 @@ export default function Detalle() {
           value={form.estado || ""}
           onChange={handle}
         >
+
           <option value="">
             Estado
           </option>
@@ -525,6 +422,7 @@ export default function Detalle() {
           value={form.riesgo || ""}
           onChange={handle}
         >
+
           <option value="">
             Riesgo
           </option>
@@ -557,7 +455,7 @@ export default function Detalle() {
 
       </div>
 
-      {/* NUEVA INTERVENCIÓN */}
+      {/* INTERVENCIÓN */}
       <div className="card">
 
         <h2>
