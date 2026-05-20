@@ -1,600 +1,289 @@
-import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
-import { supabase } from "../../lib/supabase";
+<div className="container">
 
-export default function Detalle() {
-
-  const router = useRouter();
-  const { id } = router.query;
-
-  const [form, setForm] = useState(null);
-
-  const [intervenciones, setIntervenciones] = useState([]);
-
-  const [nueva, setNueva] = useState({
-    accion: "",
-    derivacion: "",
-    observaciones: ""
-  });
-
-  useEffect(() => {
-
-    if (!router.isReady || !id) return;
-
-    cargar();
-    cargarIntervenciones();
-
-  }, [router.isReady, id]);
-
-  const cargar = async () => {
-
-    const { data } = await supabase
-      .from("registros")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    setForm(data);
-
-  };
-
-  const cargarIntervenciones = async () => {
-
-    const { data } = await supabase
-      .from("intervenciones")
-      .select("*")
-      .eq("registro_id", id)
-      .order("fecha", {
-        ascending: false
-      });
-
-    setIntervenciones(data || []);
-
-  };
-
-  const handle = (e) => {
-
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
-
-  };
-
-  const handleNueva = (e) => {
-
-    setNueva({
-      ...nueva,
-      [e.target.name]: e.target.value
-    });
-
-  };
-
-  const guardar = async () => {
-
-    await supabase
-      .from("registros")
-      .update({
-        estado: form.estado,
-        riesgo: form.riesgo,
-        observaciones: form.observaciones
-      })
-      .eq("id", id);
-
-    alert("Ficha actualizada");
-
-  };
-
-  // ==========================================
-  // ACTUALIZAR UBICACIÓN + HISTORIAL
-  // ==========================================
-  const actualizarUbicacion = () => {
-
-    if (!navigator.geolocation) {
-
-      alert("GPS no disponible");
-      return;
-
+  <style jsx global>{`
+    .only-print {
+      display: none;
     }
 
-    navigator.geolocation.getCurrentPosition(async (pos) => {
+    @media print {
 
-      // UBICACIÓN ANTERIOR
-      const latAnterior = form.lat;
-      const lngAnterior = form.lng;
-
-      // NUEVA UBICACIÓN
-      const nuevaLat = pos.coords.latitude;
-      const nuevaLng = pos.coords.longitude;
-
-      const fechaActual =
-        new Date().toISOString();
-
-      // =====================================
-      // 1. GUARDAR UBICACIÓN ANTERIOR
-      // =====================================
-      if (latAnterior && lngAnterior) {
-
-        const { error: errorAnterior } =
-          await supabase
-            .from("ubicaciones_historial")
-            .insert([
-              {
-                registro_id: id,
-                lat: latAnterior,
-                lng: lngAnterior,
-                fecha: fechaActual,
-                tipo: "ubicacion_anterior"
-              }
-            ]);
-
-        if (errorAnterior) {
-
-          console.log(
-            "Error guardando ubicación anterior",
-            errorAnterior
-          );
-
-        }
-
+      nav,
+      .no-print {
+        display: none !important;
       }
 
-      // =====================================
-      // 2. ACTUALIZAR REGISTRO PRINCIPAL
-      // =====================================
-      const { error } = await supabase
-        .from("registros")
-        .update({
-          lat: nuevaLat,
-          lng: nuevaLng,
-          ultima_actualizacion: fechaActual
-        })
-        .eq("id", id);
-
-      if (error) {
-
-        console.log(error);
-
-        alert(
-          "Error al actualizar ubicación"
-        );
-
-        return;
-
+      .only-print {
+        display: block !important;
       }
 
-      // =====================================
-      // 3. GUARDAR NUEVA UBICACIÓN
-      // =====================================
-      const { error: errorNueva } =
-        await supabase
-          .from("ubicaciones_historial")
-          .insert([
+      body {
+        background: white !important;
+      }
+
+      .card {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+      }
+    }
+  `}</style>
+
+  {/* ========================================= */}
+  {/* CABECERA */}
+  {/* ========================================= */}
+  <div className="card">
+
+    <h1>
+      {form.nombre || "Sin nombre"}
+    </h1>
+
+    <p>
+      Apodo:
+      {" "}
+      {form.apodo || "Sin dato"}
+    </p>
+
+    <p>
+      RUN:
+      {" "}
+      {form.run || "Sin dato"}
+    </p>
+
+    <p>
+      Estado:
+      {" "}
+      <b>
+        {form.estado || "Sin dato"}
+      </b>
+    </p>
+
+    <p>
+      Riesgo:
+      {" "}
+      <b>
+        {form.riesgo || "Sin dato"}
+      </b>
+    </p>
+
+    {form.foto && (
+
+      <img
+        src={form.foto}
+        alt="Foto"
+        style={{
+          width: 140,
+          height: 140,
+          objectFit: "cover",
+          borderRadius: 20
+        }}
+      />
+
+    )}
+
+  </div>
+
+  {/* ========================================= */}
+  {/* SOLO IMPRESIÓN */}
+  {/* ========================================= */}
+  <div className="card only-print">
+
+    <h1>
+      FICHA TERRITORIAL
+    </h1>
+
+    <hr />
+
+    {/* FOTO */}
+    {form.foto && (
+
+      <div
+        style={{
+          marginBottom: 20
+        }}
+      >
+
+        <img
+          src={form.foto}
+          alt="Foto"
+          style={{
+            width: 180,
+            height: 180,
+            objectFit: "cover",
+            borderRadius: 20,
+            border: "1px solid #ccc"
+          }}
+        />
+
+      </div>
+
+    )}
+
+    {/* IDENTIFICACIÓN */}
+    <h2>
+      Identificación
+    </h2>
+
+    <p><b>Nombre:</b> {form.nombre}</p>
+    <p><b>Apodo:</b> {form.apodo}</p>
+    <p><b>RUN:</b> {form.run}</p>
+    <p><b>Edad:</b> {form.edad}</p>
+    <p><b>Sexo:</b> {form.sexo}</p>
+    <p><b>Nacionalidad:</b> {form.nacionalidad}</p>
+
+    <hr />
+
+    {/* UBICACIÓN */}
+    <h2>
+      Ubicación
+    </h2>
+
+    <p><b>Sector:</b> {form.sector}</p>
+    <p><b>Referencia:</b> {form.referencia}</p>
+
+    <p>
+      <b>Latitud:</b>
+      {" "}
+      {form.lat}
+    </p>
+
+    <p>
+      <b>Longitud:</b>
+      {" "}
+      {form.lng}
+    </p>
+
+    <p>
+      <b>Última actualización:</b>
+      {" "}
+
+      {form.ultima_actualizacion
+        ? new Date(
+            form.ultima_actualizacion
+          ).toLocaleString(
+            "es-CL",
             {
-              registro_id: id,
-              lat: nuevaLat,
-              lng: nuevaLng,
-              fecha: fechaActual,
-              tipo: "nueva_ubicacion"
+              timeZone:
+                "America/Santiago"
             }
-          ]);
+          )
+        : "Sin información"}
 
-      if (errorNueva) {
+    </p>
 
-        console.log(
-          "Error guardando nueva ubicación",
-          errorNueva
-        );
+    <hr />
 
-      }
+    {/* SITUACIÓN */}
+    <h2>
+      Situación actual
+    </h2>
 
-      // =====================================
-      // 4. ACTUALIZAR ESTADO LOCAL
-      // =====================================
-      setForm({
-        ...form,
-        lat: nuevaLat,
-        lng: nuevaLng,
-        ultima_actualizacion: fechaActual
-      });
+    <p>
+      <b>Estado:</b>
+      {" "}
+      {form.estado}
+    </p>
 
-      alert(
-        "Ubicación actualizada y historial guardado"
-      );
+    <p>
+      <b>Riesgo:</b>
+      {" "}
+      {form.riesgo}
+    </p>
 
-    });
+    <p>
+      <b>Consumo:</b>
+      {" "}
+      {form.consumo}
+    </p>
 
-  };
+    <p>
+      <b>Salud mental:</b>
+      {" "}
+      {form.saludmental}
+    </p>
 
-  const abrirGoogleMaps = () => {
+    <p>
+      <b>Acepta albergue:</b>
+      {" "}
+      {form.aceptaalbergue}
+    </p>
 
-    window.open(
-      `https://www.google.com/maps/search/?api=1&query=${form.lat},${form.lng}`,
-      "_blank"
-    );
+    <p>
+      <b>Observaciones:</b>
+    </p>
 
-  };
+    <p>
+      {form.observaciones}
+    </p>
 
-  const verHistorialMapa = () => {
+    <hr />
 
-    router.push(
-      `/mapa?lat=${form.lat}&lng=${form.lng}&id=${id}`
-    );
+    {/* HISTORIAL */}
+    <h2>
+      Historial intervenciones
+    </h2>
 
-  };
+    {intervenciones.length === 0 && (
 
-  const guardarIntervencion = async () => {
-
-    const { data: userData } =
-      await supabase.auth.getUser();
-
-    const funcionario =
-      userData?.user?.email ||
-      "Funcionario no identificado";
-
-    const { error } = await supabase
-      .from("intervenciones")
-      .insert([
-        {
-          registro_id: id,
-          funcionario,
-          accion: nueva.accion,
-          derivacion: nueva.derivacion,
-          observaciones: nueva.observaciones
-        }
-      ]);
-
-    if (error) {
-
-      alert(
-        "Error al guardar intervención"
-      );
-
-      return;
-
-    }
-
-    setNueva({
-      accion: "",
-      derivacion: "",
-      observaciones: ""
-    });
-
-    cargarIntervenciones();
-
-    alert(
-      "Intervención guardada"
-    );
-
-  };
-
-  if (!form)
-    return (
-      <p style={{ padding: 20 }}>
-        Cargando...
+      <p>
+        No existen intervenciones registradas.
       </p>
-    );
 
-  return (
+    )}
 
-    <div className="container">
+    {intervenciones.map((i) => (
 
-      <div className="card">
-
-        <h1>
-          {form.nombre || "Sin nombre"}
-        </h1>
+      <div
+        key={i.id}
+        style={{
+          marginBottom: 20,
+          paddingBottom: 10,
+          borderBottom:
+            "1px solid #ccc"
+        }}
+      >
 
         <p>
-          Apodo:
+          <b>Fecha:</b>
           {" "}
-          {form.apodo || "Sin dato"}
+
+          {new Date(i.fecha)
+            .toLocaleString(
+              "es-CL",
+              {
+                timeZone:
+                  "America/Santiago"
+              }
+            )}
+
         </p>
 
         <p>
-          RUN:
+          <b>Funcionario:</b>
           {" "}
-          {form.run || "Sin dato"}
+          {i.funcionario}
         </p>
 
         <p>
-          Estado:
+          <b>Acción:</b>
           {" "}
-          <b>
-            {form.estado || "Sin dato"}
-          </b>
+          {i.accion}
         </p>
 
         <p>
-          Riesgo:
+          <b>Derivación:</b>
           {" "}
-          <b>
-            {form.riesgo || "Sin dato"}
-          </b>
+          {i.derivacion}
         </p>
 
-        {form.foto && (
-
-          <img
-            src={form.foto}
-            alt="Foto"
-            style={{
-              width: 140,
-              height: 140,
-              objectFit: "cover",
-              borderRadius: 20
-            }}
-          />
-
-        )}
+        <p>
+          <b>Observaciones:</b>
+          {" "}
+          {i.observaciones}
+        </p>
 
       </div>
 
-      {/* ACCIONES */}
-      <div className="card">
+    ))}
 
-        <h2>
-          Acciones rápidas
-        </h2>
+  </div>
 
-        <div className="grid-btn">
-
-          <button
-            className="btn"
-            onClick={guardar}
-          >
-            💾 Guardar ficha
-          </button>
-
-          <button
-            className="btn"
-            onClick={actualizarUbicacion}
-          >
-            📍 Actualizar ubicación
-          </button>
-
-          <button
-            className="btn"
-            onClick={verHistorialMapa}
-          >
-            🗺️ Historial mapa
-          </button>
-
-          <button
-            className="btn"
-            onClick={abrirGoogleMaps}
-          >
-            🧭 Google Maps
-          </button>
-
-          <button
-            className="btn"
-            onClick={() => window.print()}
-          >
-            🖨️ Imprimir / PDF
-          </button>
-
-        </div>
-
-      </div>
-
-      {/* SITUACIÓN */}
-      <div className="card">
-
-        <h2>
-          ⚠️ Situación actual
-        </h2>
-
-        <select
-          name="estado"
-          value={form.estado || ""}
-          onChange={handle}
-        >
-
-          <option value="">
-            Estado
-          </option>
-
-          <option>
-            En calle
-          </option>
-
-          <option>
-            Atendido
-          </option>
-
-          <option>
-            Trasladado
-          </option>
-
-          <option>
-            Derivado a salud
-          </option>
-
-          <option>
-            Sin ubicación
-          </option>
-
-        </select>
-
-        <select
-          name="riesgo"
-          value={form.riesgo || ""}
-          onChange={handle}
-        >
-
-          <option value="">
-            Riesgo
-          </option>
-
-          <option>
-            Bajo
-          </option>
-
-          <option>
-            Medio
-          </option>
-
-          <option>
-            Alto
-          </option>
-
-          <option>
-            Crítico
-          </option>
-
-        </select>
-
-        <textarea
-          name="observaciones"
-          value={form.observaciones || ""}
-          onChange={handle}
-          placeholder="Observaciones generales"
-          rows={4}
-        />
-
-      </div>
-
-      {/* INTERVENCIÓN */}
-      <div className="card">
-
-        <h2>
-          📝 Nueva intervención
-        </h2>
-
-        <select
-          name="accion"
-          value={nueva.accion}
-          onChange={handleNueva}
-        >
-
-          <option value="">
-            Acción realizada
-          </option>
-
-          <option>
-            Contacto en terreno
-          </option>
-
-          <option>
-            Entrega de orientación
-          </option>
-
-          <option>
-            Control preventivo
-          </option>
-
-          <option>
-            Coordinación municipal
-          </option>
-
-          <option>
-            Derivación a salud
-          </option>
-
-          <option>
-            Derivación a albergue
-          </option>
-
-          <option>
-            Rechaza ayuda
-          </option>
-
-          <option>
-            No ubicado
-          </option>
-
-        </select>
-
-        <input
-          name="derivacion"
-          placeholder="Derivación"
-          value={nueva.derivacion}
-          onChange={handleNueva}
-        />
-
-        <textarea
-          name="observaciones"
-          placeholder="Observaciones"
-          value={nueva.observaciones}
-          onChange={handleNueva}
-          rows={4}
-        />
-
-        <button
-          className="btn"
-          onClick={guardarIntervencion}
-        >
-          ➕ Guardar intervención
-        </button>
-
-      </div>
-
-      {/* HISTORIAL */}
-      <div className="card">
-
-        <h2>
-          📚 Historial de intervenciones
-        </h2>
-
-        {intervenciones.length === 0 && (
-
-          <p>
-            No hay intervenciones registradas.
-          </p>
-
-        )}
-
-        {intervenciones.map((i) => (
-
-          <div key={i.id}>
-
-            <h3>
-              {i.accion}
-            </h3>
-
-            <p>
-              Fecha:
-              {" "}
-
-              {new Date(i.fecha)
-                .toLocaleString(
-                  "es-CL",
-                  {
-                    timeZone:
-                      "America/Santiago"
-                  }
-                )}
-
-            </p>
-
-            <p>
-              Funcionario:
-              {" "}
-              {i.funcionario}
-            </p>
-
-            <p>
-              Derivación:
-              {" "}
-              {i.derivacion}
-            </p>
-
-            <p>
-              Observaciones:
-              {" "}
-              {i.observaciones}
-            </p>
-
-            <hr />
-
-          </div>
-
-        ))}
-
-      </div>
-
-    </div>
-
-  );
-}
+</div>
