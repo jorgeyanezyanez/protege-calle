@@ -1,35 +1,43 @@
 <div className="container">
 
+  {/* ===================================== */}
+  {/* ESTILO IMPRESIÓN */}
+  {/* ===================================== */}
   <style jsx global>{`
-    .only-print {
+    .ficha-print {
       display: none;
     }
 
     @media print {
 
-      nav,
-      .no-print {
-        display: none !important;
+      body * {
+        visibility: hidden !important;
       }
 
-      .only-print {
+      .ficha-print,
+      .ficha-print * {
+        visibility: visible !important;
+      }
+
+      .ficha-print {
         display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white;
+        padding: 20px;
       }
 
-      body {
-        background: white !important;
-      }
-
-      .card {
-        box-shadow: none !important;
-        border: 1px solid #ccc !important;
+      .ficha-print img {
+        max-width: 180px;
       }
     }
   `}</style>
 
-  {/* ========================================= */}
-  {/* CABECERA */}
-  {/* ========================================= */}
+  {/* ===================================== */}
+  {/* VISTA NORMAL */}
+  {/* ===================================== */}
   <div className="card">
 
     <h1>
@@ -81,10 +89,60 @@
 
   </div>
 
-  {/* ========================================= */}
-  {/* SOLO IMPRESIÓN */}
-  {/* ========================================= */}
-  <div className="card only-print">
+  {/* ===================================== */}
+  {/* ACCIONES */}
+  {/* ===================================== */}
+  <div className="card">
+
+    <h2>
+      Acciones rápidas
+    </h2>
+
+    <div className="grid-btn">
+
+      <button
+        className="btn"
+        onClick={guardar}
+      >
+        💾 Guardar ficha
+      </button>
+
+      <button
+        className="btn"
+        onClick={actualizarUbicacion}
+      >
+        📍 Actualizar ubicación
+      </button>
+
+      <button
+        className="btn"
+        onClick={verHistorialMapa}
+      >
+        🗺️ Historial mapa
+      </button>
+
+      <button
+        className="btn"
+        onClick={abrirGoogleMaps}
+      >
+        🧭 Google Maps
+      </button>
+
+      <button
+        className="btn"
+        onClick={() => window.print()}
+      >
+        🖨️ Imprimir / PDF
+      </button>
+
+    </div>
+
+  </div>
+
+  {/* ===================================== */}
+  {/* FICHA SOLO IMPRESIÓN */}
+  {/* ===================================== */}
+  <div className="ficha-print">
 
     <h1>
       FICHA TERRITORIAL
